@@ -1,0 +1,9 @@
+Django>=5.0
+psycopg2==2.9.10
+django-extensions
+ipdb
+python-dotenv==1.0.0
+Pillow
+coverage==7.4.0
+pytest==8.0.0
+pytest-django==4.7.0

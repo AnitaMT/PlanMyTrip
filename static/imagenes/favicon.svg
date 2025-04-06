@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+    <!-- Mapa mundial (contorno blanco semitransparente) -->
+    <path d="M130,170 C160,150 200,180 230,170 C260,160 290,140 320,160 C350,180 360,220 350,250 C340,280 300,290 270,300 C240,310 200,330 170,310 C140,290 130,250 120,220 C110,190 120,180 130,170 Z" fill="#33b1f4" fill-opacity="0.6" />
+        
+    <!-- Ruta de viaje (línea punteada blanca) -->
+    <path d="M150,230 C180,200 220,240 260,220 C300,200 330,260 360,240" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-dasharray="1,15" />
+        
+    <!-- Pines del mapa (rosa oscuro #e67f9a) -->
+    <circle cx="150" cy="230" r="12" fill="#e67f9a" />
+    <circle cx="150" cy="230" r="6" fill="#ffffff" />
+    <circle cx="260" cy="220" r="12" fill="#e67f9a" />
+    <circle cx="260" cy="220" r="6" fill="#ffffff" />
+    <circle cx="360" cy="240" r="12" fill="#e67f9a" />
+    <circle cx="360" cy="240" r="6" fill="#ffffff" />
+        
+    <!-- Avión de papel (blanco) -->
+    <g transform="translate(250, 180) rotate(30)">
+        <path d="M0,0 L40,-20 L20,0 L40,20 Z" fill="#ffffff" />
+    </g>
+</svg>
