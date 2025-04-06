@@ -1,0 +1,78 @@
+body {
+    background: linear-gradient(135deg, #a0c4ff, #bde0fe);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: Arial, sans-serif;
+    color: white;
+    text-align: center;
+    padding-top: 50px;
+}
+
+.container {
+    padding-top: 80px;
+    max-width: 800px !important;
+}
+
+.card {
+    border-radius: 10px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-body {
+    padding: 30px;
+}
+
+h2 {
+    font-weight: bold;
+    color: #3b4c5a;
+}
+
+.form-group label {
+    font-weight: bold;
+    color: #3b4c5a;
+}
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+button[type="submit"] {
+    background-color: #00bcd4;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #0288d1;
+}
+
+.mt-3 {
+    font-size: 14px;
+}
+
+.mt-3 a {
+    color: #00bcd4;
+    text-decoration: none;
+}
+
+.mt-3 a:hover {
+    text-decoration: underline;
+}

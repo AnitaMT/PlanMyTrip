@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Logout - PlanMyTrip{% endblock %}
+{% block src_css %} {% static 'css/logout.css' %} {% endblock %}
+
+{% block content %}
+<div class="logout-section">
+    <h2>¡Has cerrado sesión exitosamente!</h2>
+    <p>Esperamos verte pronto nuevamente. Haz clic en el botón de abajo para volver a iniciar sesión.</p>
+    <button type="button" class="btn">
+        <a href="{% url 'viajes:login' %}">Iniciar sesión</a>
+    </button>
+</div>
+{% endblock %}

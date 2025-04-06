@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}PlanMyTrip – Travel Together{% endblock %}
+{% block src_css %} {% static 'css/index.css' %} {% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold text-primary" href="#">
+        <img src="{% static 'imagenes/logo.png' %}" width="60" height="60" alt="logo">
+        PlanMyTrip</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav me-3">
+        <li class="nav-item">
+          <a class="nav-link" href="#funcionalidades">Funcionalidades</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#testimonios">Testimonios</a>
+        </li>
+      </ul>
+      <a href="{% url 'viajes:login' %}" class="btn btn-outline-primary">
+        <i class="bi bi-person"></i> Iniciar sesión
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section text-center text-white d-flex align-items-center justify-content-center">
+  <div class="container">
+    <h1 class="display-4 fw-bold">Viaja en grupo sin complicaciones</h1>
+    <p class="lead mt-3">Organiza, planifica y disfruta tu próximo viaje con amigos de forma sencilla.</p>
+    <a href="{% url 'viajes:login' %}" class="btn btn-lg btn-light mt-4">Empieza ahora</a>
+  </div>
+</section>
+
+<!-- Funcionalidades -->
+<section id="funcionalidades" class="py-5 bg-white">
+  <div class="container text-center">
+    <h2 class="mb-4 text-primary fw-semibold">¿Qué puedes hacer con PlanMyTrip?</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <h5>Crear viajes en grupo</h5>
+        <p>Agrega destinos, fechas y participantes fácilmente.</p>
+      </div>
+      <div class="col-md-4">
+        <h5>Organizar presupuestos</h5>
+        <p>Controla gastos y reparte costes entre todos los viajeros.</p>
+      </div>
+      <div class="col-md-4">
+        <h5>Chatea y colabora</h5>
+        <p>Comunícate con el grupo, propone actividades y vota ideas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonios -->
+<section id="testimonios" class="bg-light py-5">
+  <div class="container text-center">
+    <h2 class="mb-4 text-primary fw-semibold">Lo que dicen nuestros viajeros</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <blockquote class="blockquote">
+          <p>"Organizar un viaje con mis amigos nunca fue tan fácil."</p>
+          <footer class="blockquote-footer">Lucía G.</footer>
+        </blockquote>
+      </div>
+      <div class="col-md-4">
+        <blockquote class="blockquote">
+          <p>"¡Nos encantó poder votar las actividades! Muy útil."</p>
+          <footer class="blockquote-footer">Carlos M.</footer>
+        </blockquote>
+      </div>
+      <div class="col-md-4">
+        <blockquote class="blockquote">
+          <p>"La app nos ahorró mucho tiempo y malentendidos."</p>
+          <footer class="blockquote-footer">Sara T.</footer>
+        </blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer bg-primary text-white py-4 mt-5">
+  <div class="container text-center">
+    <p class="mb-0">&copy; 2025 PlanMyTrip – Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+{% endblock %}

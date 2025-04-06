@@ -1,0 +1,31 @@
+/* Estilos personalizados para index.html */
+
+.hero-section {
+    background: linear-gradient(to right, #00c6ff, #0072ff);
+    height: 80vh;
+    padding: 4rem 1rem;
+}
+
+.hero-section h1,
+.hero-section p {
+    color: white;
+}
+
+.hero-section .btn {
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    border-radius: 50px;
+}
+
+h2 {
+    font-weight: 600;
+}
+
+blockquote {
+    font-style: italic;
+    color: #555;
+}
+
+.footer {
+    background-color: #0072ff;
+}
