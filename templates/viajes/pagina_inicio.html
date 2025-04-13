@@ -1,14 +1,217 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    <h1>Welcome!</h1>
-    <form action="{% url 'viajes:logout' %}" method="post">
-    {% csrf_token %}
-    <button type="submit">Cerrar sesión</button>
-    </form>
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}PlanMyTrip – Inicio{% endblock %}
+
+{% block src_css %}{% static 'css/pagina_inicio.css' %}{% endblock %}
+
+{% block content %}
+<div class="wrapper d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
+                <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
+                <span class="brand-text">PlanMyTrip</span>
+            </a>
+
+            <div class="d-flex align-items-center ms-auto">
+                <!-- Notificaciones con tooltip -->
+                <div class="dropdown me-3">
+                    <a href="#" class="position-relative text-dark" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Notificaciones">
+                        <i class="fas fa-bell fs-5"></i>
+                        {% if notificaciones_sin_leer_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse">
+                                {{ notificaciones_sin_leer_count }}
+                            </span>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
+                        <li class="dropdown-header">Notificaciones recientes</li>
+                        {% for notificacion in ultimas_notificaciones|slice:":5" %}
+                        <li>
+                            <a class="dropdown-item" href="{{ notificacion.enlace_relacionado }}">
+                                <div class="notification-content">
+                                    <div class="notification-text">{{ notificacion.mensaje }}</div>
+                                    <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
+                                </div>
+                            </a>
+                        </li>
+                        {% empty %}
+                        <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>
+                        {% endfor %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a href="#" class="dropdown-item text-center text-primary">Ver todas</a></li>
+                    </ul>
+                </div>
+
+                <!-- Menú de usuario -->
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle user-dropdown" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="avatar-container me-2">
+                            <img src="{% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                 alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
+                        </div>
+                        <div class="user-info d-none d-md-block">
+                            <strong>{{ user.username }}</strong>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="{% url 'viajes:inicio' %}"><i class="fas fa-user-cog me-2"></i>Ajustes</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'viajes:logout' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item logout-btn">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main class="flex-grow-1">
+        <div class="container py-5">
+            <!-- Header con estadísticas -->
+            <div class="dashboard-header mb-5">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h1 class="fw-bold mb-3">Bienvenido, {{ user.username }}</h1>
+                        <p class="lead text-muted">Organiza tus próximas aventuras con facilidad</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card p-4 rounded-3 shadow-sm bg-white">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="stat-value text-primary">{{ viajes_activos.count }}</div>
+                                    <div class="stat-label">Viajes activos</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-value text-success">{{ viajes_finalizados.count }}</div>
+                                    <div class="stat-label">Viajes completados</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-value text-info">{{ notificaciones_sin_leer_count }}</div>
+                                    <div class="stat-label">Notificaciones</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de viajes -->
+            <div class="travel-section">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="section-title">Tus Viajes</h2>
+                    <a href="{% url 'viajes:crear_viaje' %}" class="btn btn-primary btn-create">
+                        <i class="fas fa-plus me-2"></i>Nuevo Viaje
+                    </a>
+                </div>
+
+                <div class="row">
+                    <!-- Viajes Activos -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-plane-departure me-2"></i>Viajes Activos</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if viajes_activos %}
+                                    <div class="list-group list-group-flush">
+                                        {% for viaje in viajes_activos %}
+                                        <a href="{% url 'viajes:detalles_viaje' viaje.pk %}" class="list-group-item list-group-item-action">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1">{{ viaje.nombre }}</h6>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>{{ viaje.destino.nombre }}
+                                                        <i class="fas fa-calendar-alt ms-2 me-1"></i>{{ viaje.fecha_inicio|date:"d M" }} - {{ viaje.fecha_fin|date:"d M Y" }}
+                                                    </small>
+                                                </div>
+                                                <span class="badge bg-primary-light text-primary">Activo</span>
+                                            </div>
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="empty-state">
+                                        <i class="fas fa-plane-slash text-muted mb-3"></i>
+                                        <p class="text-muted">No tienes viajes activos</p>
+                                        <a href="{% url 'viajes:crear_viaje' %}" class="btn btn-sm btn-outline-primary">Planificar uno nuevo</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Viajes Finalizados -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0"><i class="fas fa-archive me-2"></i>Viajes Finalizados</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if viajes_finalizados %}
+                                    <div class="list-group list-group-flush">
+                                        {% for viaje in viajes_finalizados %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1">{{ viaje.nombre }}</h6>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>{{ viaje.destino.nombre }}
+                                                        <i class="fas fa-calendar-alt ms-2 me-1"></i>{{ viaje.fecha_inicio|date:"d M" }} - {{ viaje.fecha_fin|date:"d M Y" }}
+                                                    </small>
+                                                </div>
+                                                <div>
+                                                    <form method="post" action="{% url 'viajes:eliminar_viaje' viaje.pk %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Eliminar">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </form>
+                                                    <a href="{% url 'viajes:detalles_viaje' viaje.pk %}" class="btn btn-sm btn-outline-primary ms-1" data-bs-toggle="tooltip" title="Ver detalles">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="empty-state">
+                                        <i class="fas fa-box-open text-muted mb-3"></i>
+                                        <p class="text-muted">No hay viajes finalizados</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-primary text-white py-4 mt-auto">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+{% endblock %}

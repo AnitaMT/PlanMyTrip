@@ -1,0 +1,56 @@
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo circular -->
+  <circle cx="150" cy="150" r="140" fill="#E8F4FC"/>
+  
+  <!-- Cuerpo de la mascota - una maleta con cara -->
+  <rect x="65" y="90" width="170" height="140" rx="20" ry="20" fill="#5B9BD5"/>
+  <rect x="75" y="100" width="150" height="120" rx="15" ry="15" fill="#8CC5F2"/>
+  
+  <!-- Detalles de la maleta -->
+  <rect x="135" y="90" width="30" height="10" fill="#4A7DAD"/>
+  <rect x="120" y="75" width="60" height="25" rx="10" ry="10" fill="#4A7DAD"/>
+  <rect x="110" y="140" width="80" height="5" fill="#4A7DAD"/>
+  
+  <!-- Cara -->
+  <!-- Ojos -->
+  <circle cx="120" cy="125" r="12" fill="white"/>
+  <circle cx="180" cy="125" r="12" fill="white"/>
+  <circle cx="120" cy="125" r="6" fill="#333"/>
+  <circle cx="180" cy="125" r="6" fill="#333"/>
+  <circle cx="117" cy="122" r="3" fill="white"/>
+  <circle cx="177" cy="122" r="3" fill="white"/>
+  
+  <!-- Sonrisa -->
+  <path d="M130,155 Q150,175 170,155" stroke="#333" stroke-width="4" fill="none"/>
+  
+  <!-- Mejillas -->
+  <circle cx="110" cy="145" r="8" fill="#FF9999" opacity="0.6"/>
+  <circle cx="190" cy="145" r="8" fill="#FF9999" opacity="0.6"/>
+  
+  <!-- Elementos de viaje -->
+  <!-- Sol -->
+  <circle cx="50" cy="60" r="20" fill="#FFD700"/>
+  <line x1="50" y1="30" x2="50" y2="20" stroke="#FFD700" stroke-width="4"/>
+  <line x1="50" y1="100" x2="50" y2="90" stroke="#FFD700" stroke-width="4"/>
+  <line x1="20" y1="60" x2="10" y2="60" stroke="#FFD700" stroke-width="4"/>
+  <line x1="90" y1="60" x2="80" y2="60" stroke="#FFD700" stroke-width="4"/>
+  <line x1="30" y1="40" x2="25" y2="35" stroke="#FFD700" stroke-width="4"/>
+  <line x1="70" y1="80" x2="75" y2="85" stroke="#FFD700" stroke-width="4"/>
+  <line x1="30" y1="80" x2="25" y2="85" stroke="#FFD700" stroke-width="4"/>
+  <line x1="70" y1="40" x2="75" y2="35" stroke="#FFD700" stroke-width="4"/>
+  
+  <!-- Avión de papel -->
+  <path d="M240,50 L270,70 L240,90 Z" fill="white" stroke="#4A7DAD" stroke-width="2"/>
+  <path d="M240,50 L240,90 L210,70 Z" fill="#D3E5F5" stroke="#4A7DAD" stroke-width="2"/>
+  
+  <!-- Ruedas de la maleta -->
+  <circle cx="90" cy="230" r="10" fill="#333"/>
+  <circle cx="210" cy="230" r="10" fill="#333"/>
+  
+  <!-- Detalles pequeños de viaje -->
+  <circle cx="240" cy="200" r="15" fill="#FFD700" opacity="0.6"/> <!-- Moneda/dinero -->
+  <rect x="220" cy="160" width="15" height="25" fill="#FF6B6B" rx="2" ry="2"/> <!-- Pasaporte -->
+  
+  <!-- Etiqueta de equipaje -->
+  <rect x="70" y="150" width="25" height="15" rx="3" ry="3" fill="#FF9999"/>
+</svg>
