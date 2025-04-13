@@ -15,6 +15,13 @@
 <body>
 {% block content %}
 {% endblock %}
+<div id="bootstrapAlert" class="alert alert-dismissible fade show d-none position-fixed start-50 translate-middle-x"
+     style="top: 20px; z-index: 1100; min-width: 300px; text-align: center;">
+    <div class="d-flex justify-content-between align-items-center">
+        <strong id="alert-message" class="flex-grow-1"></strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
 </body>
 
 </html>

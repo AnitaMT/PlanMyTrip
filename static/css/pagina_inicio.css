@@ -154,32 +154,6 @@
     opacity: 0.5;
 }
 
-/* Quick actions */
-.action-card {
-    background: white;
-    color: var(--dark-gray);
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.action-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    color: var(--primary-color);
-    text-decoration: none;
-}
-
-.action-icon {
-    font-size: 1.75rem;
-    color: var(--primary-color);
-}
-
-.action-card h6 {
-    font-weight: 600;
-    margin-bottom: 0;
-    font-size: 0.9rem;
-}
-
 /* Footer mejorado */
 .footer {
     background-color: var(--primary-color);

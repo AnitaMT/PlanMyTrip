@@ -2,7 +2,7 @@ from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, 
     PasswordResetCompleteView
 from django.urls import path
 from viajes.views import IndexView, RegistroUsuarioView, UsuarioLoginView, UsuarioLogoutView, PaginaInicioUsuarioView, \
-    CrearViajeView, DetallesViajeView
+    CrearViajeView, DetallesViajeView, AgregarColaboradorView
 
 app_name = 'viajes'
 
@@ -17,5 +17,6 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('crear-viaje/', CrearViajeView.as_view(), name='crear_viaje'),
-    path('viajes/<int:pk>/', DetallesViajeView.as_view(), name='detalles_viaje'),
+    path('<int:pk>/', DetallesViajeView.as_view(), name='detalles_viaje'),
+    path('<int:viaje_id>/agregar-colaborador/', AgregarColaboradorView.as_view(), name='agregar_colaborador'),
 ]

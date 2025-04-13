@@ -2,112 +2,358 @@
 {% load static %}
 {% block title %}PlanMyTrip - Detalles Viaje{% endblock %}
 {% block src_css %}{% static 'css/detalles_viaje.css' %}{% endblock %}
+{% block style %}
+    .quick-actions {
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin: 1rem 0;
+    }
+
+    .quick-actions h5 {
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #3498db;
+    }
+
+    .action-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+    text-align: center;
+    display: block;
+    margin-bottom: 1rem;
+    text-decoration: none;
+    color: #333;
+    }
+
+    .action-card:hover {
+    background: #f8f8f8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .action-icon {
+    font-size: 1.5rem;
+    color: #3498db;
+    margin-bottom: 0.5rem;
+    }
+
+    .action-card h6 {
+    font-weight: 600;
+    margin: 0;
+    font-size: 0.9rem;
+    }
+{% endblock %}
 
 {% block content %}
-<div class="wrapper d-flex flex-column min-vh-100">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold text-primary" href="{% url 'viajes:inicio' %}">
-                <img src="{% static 'imagenes/logo.png' %}" width="60" height="60" alt="logo">
-                PlanMyTrip
-            </a>
-
-            <div class="d-flex align-items-center ms-auto position-relative">
-                <!-- Notificaciones -->
-                <a href="{% url 'viajes:inicio' %}" class="me-3 position-relative text-dark">
-                    <i class="fas fa-bell fs-5"></i>
-                    {% if notificaciones_sin_leer_count > 0 %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            {{ notificaciones_sin_leer_count }}
-                        </span>
-                    {% endif %}
+    <div class="wrapper d-flex flex-column min-vh-100">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
+                    <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
+                    <span class="brand-text">PlanMyTrip</span>
                 </a>
 
-                <!-- Menú de usuario -->
-                <div class="dropdown">
-                    <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="{% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}" alt="Foto de perfil" class="rounded-circle me-2" width="40" height="40">
-                        <strong>{{ user.username }}</strong>
+                <div class="d-flex align-items-center ms-auto">
+                    <!-- Notificaciones con tooltip -->
+                    <div class="dropdown me-3">
+                        <a href="#" class="position-relative text-dark" data-bs-toggle="dropdown" aria-expanded="false"
+                           data-bs-toggle="tooltip" title="Notificaciones">
+                            <i class="fas fa-bell fs-5"></i>
+                            {% if notificaciones_sin_leer_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse">
+                                {{ notificaciones_sin_leer_count }}
+                            </span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
+                            <li class="dropdown-header">Notificaciones recientes</li>
+                            {% for notificacion in ultimas_notificaciones|slice:":5" %}
+                                <li>
+                                    <a class="dropdown-item" href="{{ notificacion.enlace_relacionado }}">
+                                        <div class="notification-content">
+                                            <div class="notification-text">{{ notificacion.mensaje }}</div>
+                                            <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
+                                        </div>
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a href="#" class="dropdown-item text-center text-primary">Ver todas</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Menú de usuario -->
+                    <div class="dropdown">
+                        <a href="#"
+                           class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle user-dropdown"
+                           id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="avatar-container me-2">
+                                <img src="
+                                        {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                     alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
+                            </div>
+                            <div class="user-info d-none d-md-block">
+                                <strong>{{ user.username }}</strong>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{% url 'viajes:inicio' %}"><i
+                                    class="fas fa-user-cog me-2"></i>Ajustes</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form action="{% url 'viajes:logout' %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item logout-btn">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions mb-5">
+            <h5 class="mb-3">Acciones rápidas</h5>
+            <div class="row g-3">
+                <div class="col-md-3 col-6">
+                    <a href="{% url 'viajes:crear_viaje' %}" class="action-card text-center p-3 rounded-3 d-block">
+                        <div class="action-icon mb-2">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <h6>Nuevo Viaje</h6>
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="{% url 'viajes:inicio' %}">Ajustes</a></li>
-                        <form action="{% url 'viajes:logout' %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item">Cerrar sesión</button>
-                        </form>
-                    </ul>
+                </div>
+                <div class="col-md-3 col-6">
+                    <a href="#" class="action-card text-center p-3 rounded-3 d-block" data-bs-toggle="modal"
+                       data-bs-target="#agregarColaboradorModal">
+                        <div class="action-icon mb-2">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h6>Invitar Amigos</h6>
+                    </a>
+                </div>
+                <div class="col-md-3 col-6">
+                    <a href="#" class="action-card text-center p-3 rounded-3 d-block">
+                        <div class="action-icon mb-2">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <h6>Presupuestos</h6>
+                    </a>
+                </div>
+                <div class="col-md-3 col-6">
+                    <a href="{% url 'viajes:inicio' %}" class="action-card text-center p-3 rounded-3 d-block">
+                        <div class="action-icon mb-2">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <h6>Ajustes</h6>
+                    </a>
                 </div>
             </div>
         </div>
-    </nav>
 
-    <main class="flex-grow-1">
-        <div class="container mt-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">{{ viaje.nombre }}</h2>
-                <span class="badge bg-{% if viaje.estado == 'ACTIVO' %}success{% else %}secondary{% endif %}">
+        <main class="flex-grow-1">
+            <div class="container mt-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">{{ viaje.nombre }}</h2>
+                    <span class="badge bg-{% if viaje.estado == 'ACTIVO' %}success{% else %}secondary{% endif %}">
                     {{ viaje.get_estado_display }}
                 </span>
-            </div>
+                </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title text-primary">
-                                <i class="fas fa-info-circle me-2"></i>Información del Viaje
-                            </h5>
-                            <div class="viaje-info">
-                                <p><strong><i class="fas fa-map-marker-alt me-2"></i>Destino:</strong> {{ viaje.destino.nombre }}, {{ viaje.destino.pais }}</p>
-                                <p><strong><i class="fas fa-calendar-day me-2"></i>Fecha inicio:</strong> {{ viaje.fecha_inicio|date:"d/m/Y" }}</p>
-                                <p><strong><i class="fas fa-calendar-check me-2"></i>Fecha fin:</strong> {{ viaje.fecha_fin|date:"d/m/Y" }}</p>
-                                {% if viaje.presupuesto_total %}
-                                <p><strong><i class="fas fa-money-bill-wave me-2"></i>Presupuesto:</strong> {{ viaje.presupuesto_total }} €</p>
-                                {% endif %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">
+                                    <i class="fas fa-info-circle me-2"></i>Información del Viaje
+                                </h5>
+                                <div class="viaje-info">
+                                    <p><strong><i
+                                            class="fas fa-map-marker-alt me-2"></i>Destino:</strong> {{ viaje.destino.nombre }}, {{ viaje.destino.pais }}
+                                    </p>
+                                    <p><strong><i class="fas fa-calendar-day me-2"></i>Fecha
+                                        inicio:</strong> {{ viaje.fecha_inicio|date:"d/m/Y" }}</p>
+                                    <p><strong><i class="fas fa-calendar-check me-2"></i>Fecha
+                                        fin:</strong> {{ viaje.fecha_fin|date:"d/m/Y" }}</p>
+                                    {% if viaje.presupuesto_total %}
+                                        <p><strong><i
+                                                class="fas fa-money-bill-wave me-2"></i>Presupuesto:</strong> {{ viaje.presupuesto_total }}
+                                            €</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">
+                                    <i class="fas fa-users me-2"></i>Participantes
+                                </h5>
+                                <div class="participantes">
+                                    <p><strong>Creador:</strong> {{ viaje.creador.username }}</p>
+                                    {% if viaje.colaboradores.all %}
+                                        <p><strong>Colaboradores:</strong></p>
+                                        <ul class="list-unstyled">
+                                            {% for colaborador in viaje.colaboradores.all %}
+                                                <li><i class="fas fa-user-friends me-2"></i>{{ colaborador.username }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="text-muted">No hay colaboradores añadidos</p>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title text-primary">
-                                <i class="fas fa-users me-2"></i>Participantes
-                            </h5>
-                            <div class="participantes">
-                                <p><strong>Creador:</strong> {{ viaje.creador.username }}</p>
-                                {% if viaje.colaboradores.all %}
-                                    <p><strong>Colaboradores:</strong></p>
-                                    <ul class="list-unstyled">
-                                        {% for colaborador in viaje.colaboradores.all %}
-                                        <li><i class="fas fa-user-friends me-2"></i>{{ colaborador.username }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    <p class="text-muted">No hay colaboradores añadidos</p>
-                                {% endif %}
-                            </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a href="{% url 'viajes:inicio' %}" class="btn btn-outline-primary me-md-2">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al inicio
+                    </a>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Editar viaje
+                    </a>
+                </div>
+            </div>
+            <!-- Modal para agregar colaboradores -->
+            <div class="modal fade" id="agregarColaboradorModal" tabindex="-1"
+                 aria-labelledby="agregarColaboradorModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="agregarColaboradorModalLabel">Agregar Colaborador</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="agregarColaboradorForm">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Nombre de usuario</label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                    <div class="invalid-feedback" id="username-error"></div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="agregarColaboradorBtn">Agregar</button>
                         </div>
                     </div>
                 </div>
             </div>
+        </main>
 
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                <a href="{% url 'viajes:inicio' %}" class="btn btn-outline-primary me-md-2">
-                    <i class="fas fa-arrow-left me-2"></i>Volver al inicio
-                </a>
-                <a href="#" class="btn btn-primary">
-                    <i class="fas fa-edit me-2"></i>Editar viaje
-                </a>
+        <footer class="footer bg-primary text-white py-4 mt-auto">
+            <div class="container text-center">
+                <p class="mb-0">&copy; 2025 PlanMyTrip – Todos los derechos reservados.</p>
             </div>
-        </div>
-    </main>
+        </footer>
+    </div>
+    {% block scripts %}
+        <script>
+            document.getElementById('agregarColaboradorBtn').addEventListener('click', async function () {
+                const username = document.getElementById('username').value.trim();
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    <footer class="footer bg-primary text-white py-4 mt-auto">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2025 PlanMyTrip – Todos los derechos reservados.</p>
-        </div>
-    </footer>
-</div>
+                if (!username) {
+                    showAlert('danger', 'Por favor ingresa un nombre de usuario');
+                    return;
+                }
+
+                try {
+                    const response = await fetch("{% url 'viajes:agregar_colaborador' viaje.id %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({username: username})
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        // Actualizar la interfaz
+                        actualizarColaboradoresList(data.username);
+
+                        // Cerrar modal y resetear
+                        bootstrap.Modal.getInstance(document.getElementById('agregarColaboradorModal')).hide();
+                        document.getElementById('agregarColaboradorForm').reset();
+                    } else {
+                        showAlert('danger', data.error || 'Error desconocido');
+                    }
+                } catch (error) {
+                    showAlert('danger', 'Error de red o del servidor');
+                }
+            });
+
+            function showAlert(type, message) {
+                const alert = document.getElementById('bootstrapAlert');
+                const alertMessage = document.getElementById('alert-message');
+
+                // Resetear clases
+                alert.className = 'alert alert-dismissible fade show d-none position-fixed start-50 translate-middle-x';
+                alert.style.top = '20px';
+
+                // Añadir clases según el tipo
+                if (type === 'danger') {
+                    alert.classList.add('alert-danger');
+                    alertMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${message}`;
+                }
+
+                // Mostrar alerta
+                alert.classList.remove('d-none');
+
+                // Auto-ocultar después de 5 segundos
+                setTimeout(() => {
+                    alert.classList.add('d-none');
+                }, 5000);
+            }
+
+            function actualizarColaboradoresList(username) {
+                const colaboradoresList = document.querySelector('.participantes ul') ||
+                    document.createElement('ul');
+
+                if (!colaboradoresList.parentElement) {
+                    colaboradoresList.className = 'list-unstyled';
+                    document.querySelector('.participantes').appendChild(colaboradoresList);
+                }
+
+                // Evitar duplicados visuales
+                const yaExiste = Array.from(colaboradoresList.children).some(li =>
+                    li.textContent.trim().toLowerCase() === username.toLowerCase()
+                );
+
+                if (yaExiste) return;
+
+                const newItem = document.createElement('li');
+                newItem.innerHTML = `<i class="fas fa-user-friends me-2"></i>${username}`;
+                colaboradoresList.appendChild(newItem);
+
+                const noColabMsg = document.querySelector('.participantes .text-muted');
+                if (noColabMsg) noColabMsg.remove();
+            }
+
+        </script>
+    {% endblock %}
 {% endblock %}
