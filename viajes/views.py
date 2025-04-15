@@ -1,17 +1,14 @@
 import json
-
 from django.contrib import messages
-from django.contrib.auth import logout, get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
-from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views import View
-from django.views.generic import TemplateView, CreateView, DetailView
-from viajes.forms import RegistroUsuarioForm, CrearViajeForm
-from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion
+from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView
+from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm
+from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad
 
 
 class IndexView(TemplateView):
@@ -124,7 +121,9 @@ class AgregarColaboradorView(LoginRequiredMixin, View):
 
             return JsonResponse({
                 'success': True,
-                'username': usuario.username
+                'username': usuario.username,
+                'id': usuario.id,
+                'viaje_id': viaje.id
             })
 
         except json.JSONDecodeError:
@@ -132,3 +131,65 @@ class AgregarColaboradorView(LoginRequiredMixin, View):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+class EliminarColaboradorView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        colaborador_id = self.kwargs.get('pk')
+        colaborador = get_object_or_404(UsuarioPersonalizado, pk=colaborador_id)
+
+        viaje_id = self.kwargs.get('viaje_id')
+        viaje = get_object_or_404(Viaje, id=viaje_id, creador=request.user)
+
+        viaje.colaboradores.remove(colaborador)
+
+        return JsonResponse({'success': True})
+
+class AgregarActividadView(LoginRequiredMixin, CreateView):
+    model = Actividad
+    form_class = AgregarActividadForm
+    template_name = 'viajes/agregar_actividad.html'
+
+    def form_valid(self, form):
+        actividad = form.save(commit=False)
+        actividad.creador = self.request.user
+        viaje_id = self.kwargs.get('pk')
+        actividad.viaje = get_object_or_404(Viaje, pk=viaje_id)
+        actividad.save()
+        messages.success(self.request, 'Actividad agregada con éxito')
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('viajes:detalles_viaje', kwargs={'pk': self.kwargs.get('pk')})
+
+class DetallesActividadView(LoginRequiredMixin, TemplateView):
+    template_name = 'viajes/detalles_actividad.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        actividad = get_object_or_404(Actividad, pk=self.kwargs['pk'])
+        context['actividad'] = actividad
+        return context
+
+class EditarActividadView(LoginRequiredMixin, UpdateView):
+    model = Actividad
+    form_class = AgregarActividadForm
+    template_name = 'viajes/agregar_actividad.html'
+
+    def get_queryset(self):
+        return Actividad.objects.filter(creador=self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Actividad actualizada con exito')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('viajes:detalles_viaje', kwargs={'pk': self.object.viaje.pk})
+
+
+class EliminarActividadView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        actividad_id = self.kwargs.get('pk')
+        actividad = get_object_or_404(Actividad, pk=actividad_id)
+        actividad.delete()
+
+        return JsonResponse({'success': True})

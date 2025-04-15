@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
-from viajes.models import UsuarioPersonalizado, Viaje, Destino
+from viajes.models import UsuarioPersonalizado, Viaje, Destino, Actividad
 
 
 class RegistroUsuarioForm(UserCreationForm):
@@ -35,3 +35,27 @@ class CrearViajeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+class AgregarActividadForm(forms.ModelForm):
+    prioridad_actividad = forms.ChoiceField(
+        choices=Actividad.PRIORIDADES,
+        label="Prioridad",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    categoria_actividad = forms.ChoiceField(
+        choices=Actividad.CATEGORIAS,
+        label="Categoría",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    class Meta:
+        model = Actividad
+        fields = ['titulo', 'descripcion', 'fecha_hora', 'ubicacion','coste_estimado']
+        widgets = {
+            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_hora': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'ubicacion': forms.TextInput(attrs={'class': 'form-control'}),
+            'coste_estimado': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
