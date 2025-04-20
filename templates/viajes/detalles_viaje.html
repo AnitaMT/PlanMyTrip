@@ -196,6 +196,8 @@
                                                 class="fas fa-money-bill-wave me-2"></i>Presupuesto:</strong> {{ viaje.presupuesto_total }}
                                             €</p>
                                     {% endif %}
+                                    <h5><i class="fas fa-map me-2"></i>Ubicación en el mapa</h5>
+                                    <div id="map" style="height: 400px;" class="rounded-4"></div>
                                 </div>
                             </div>
                         </div>
@@ -214,6 +216,10 @@
                                         <ul class="list-unstyled">
                                             {% for colaborador in viaje.colaboradores.all %}
                                                 <li><i class="fas fa-user-friends me-2"></i>{{ colaborador.username }}
+                                                    <a href="#" class="eliminar-colaborador"
+                                                       data-id="{{ colaborador.pk }}" data-viaje-id="{{ viaje.id }}"
+                                                       data-tipo="colaborador"><i
+                                                            class="fas fa-trash-alt text-danger ms-2"></i></a>
                                                 </li>
                                             {% endfor %}
                                         </ul>
@@ -225,6 +231,54 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary"><i class="fas fa-face-grin-beam me-2"></i>Actividades
+                                </h5>
+                                {% if viaje.actividades.all %}
+                                    <ul class="list-unstyled">
+                                        {% for actividad in viaje.actividades.all %}
+                                            <li>
+                                                <i class="fas fa-users me-2"></i>
+                                                <a href="{% url 'viajes:detalles_actividad' actividad.pk %}"
+                                                   style="text-decoration:none; color: black;">{{ actividad.titulo }}  </a>
+                                                <a href="{% url 'viajes:editar_actividad' actividad.pk %}"><i
+                                                        class="fas fa-edit me-2"></i></a>
+                                                <a href="#" class="eliminar-actividad" data-id="{{ actividad.pk }}"
+                                                   data-tipo="actividad"> <i
+                                                        class="fas fa-trash-alt text-danger ms-2"></i></a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted">No hay actividades</p>
+                                {% endif %}
+                                <a href="{% url 'viajes:agregar_actividad' viaje.pk %}" class="btn btn-primary">
+                                    <i class="fas fa-plus-circle"></i> Añadir actividad
+                                </a>
+                                {% if viaje.actividades.all %}
+                                    <button id="generarItinerarioBtn" class="btn btn-primary">
+                                        <i class="fas fa-calendar-check"></i> Generar itinerario
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary"><i class="fas fa-wand-magic-sparkles me-2"></i>Sugerencias
+                                </h5>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                     <a href="{% url 'viajes:inicio' %}" class="btn btn-outline-primary me-md-2">
@@ -261,6 +315,27 @@
                     </div>
                 </div>
             </div>
+
+            <!--Modal para mensaje de confirmación al eliminar actividad o colaborador -->
+            <div class="modal fade" id="confirmarEliminarModal" tabindex="-1"
+                 aria-labelledby="confirmarEliminarModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title" id="confirmarEliminarModalLabel">Confirmar eliminación</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                    aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body" id="modal-body-text">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" id="btnConfirmarEliminar" class="btn btn-danger">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <footer class="footer bg-primary text-white py-4 mt-auto">
@@ -271,6 +346,14 @@
     </div>
     {% block scripts %}
         <script>
+            let idAEliminar = null;
+            let liAEliminar = null;
+            let tipoAEliminar = null;
+            let viajeId = null;
+            let modalEliminar = null;
+            let btnConfirmarEliminar = null;
+            let modalBodyText = null;
+
             document.getElementById('agregarColaboradorBtn').addEventListener('click', async function () {
                 const username = document.getElementById('username').value.trim();
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -293,10 +376,7 @@
                     const data = await response.json();
 
                     if (response.ok && data.success) {
-                        // Actualizar la interfaz
-                        actualizarColaboradoresList(data.username);
-
-                        // Cerrar modal y resetear
+                        actualizarColaboradoresList(data);
                         bootstrap.Modal.getInstance(document.getElementById('agregarColaboradorModal')).hide();
                         document.getElementById('agregarColaboradorForm').reset();
                     } else {
@@ -311,26 +391,22 @@
                 const alert = document.getElementById('bootstrapAlert');
                 const alertMessage = document.getElementById('alert-message');
 
-                // Resetear clases
                 alert.className = 'alert alert-dismissible fade show d-none position-fixed start-50 translate-middle-x';
                 alert.style.top = '20px';
 
-                // Añadir clases según el tipo
                 if (type === 'danger') {
                     alert.classList.add('alert-danger');
                     alertMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${message}`;
                 }
 
-                // Mostrar alerta
                 alert.classList.remove('d-none');
 
-                // Auto-ocultar después de 5 segundos
                 setTimeout(() => {
                     alert.classList.add('d-none');
                 }, 5000);
             }
 
-            function actualizarColaboradoresList(username) {
+            function actualizarColaboradoresList(data) {
                 const colaboradoresList = document.querySelector('.participantes ul') ||
                     document.createElement('ul');
 
@@ -339,21 +415,127 @@
                     document.querySelector('.participantes').appendChild(colaboradoresList);
                 }
 
-                // Evitar duplicados visuales
                 const yaExiste = Array.from(colaboradoresList.children).some(li =>
-                    li.textContent.trim().toLowerCase() === username.toLowerCase()
+                    li.textContent.trim().toLowerCase().includes(data.username.toLowerCase())
                 );
 
                 if (yaExiste) return;
 
                 const newItem = document.createElement('li');
-                newItem.innerHTML = `<i class="fas fa-user-friends me-2"></i>${username}`;
+                newItem.innerHTML = `
+            <i class="fas fa-user-friends me-2"></i>${data.username}
+            <a href="#" class="text-danger ms-2 eliminar-colaborador"
+               data-id="${data.id}" data-tipo="colaborador" data-viaje-id="${data.viaje_id}">
+                <i class="fas fa-trash-alt"></i>
+            </a>
+        `;
                 colaboradoresList.appendChild(newItem);
 
                 const noColabMsg = document.querySelector('.participantes .text-muted');
                 if (noColabMsg) noColabMsg.remove();
+
+                asignarEventosEliminar();
             }
 
+            function asignarEventosEliminar() {
+                document.querySelectorAll('.eliminar-actividad, .eliminar-colaborador').forEach(boton => {
+                    boton.removeEventListener('click', handleEliminarClick); // evitar duplicados
+                    boton.addEventListener('click', handleEliminarClick);
+                });
+            }
+
+            function handleEliminarClick(e) {
+                e.preventDefault();
+                idAEliminar = this.dataset.id;
+                tipoAEliminar = this.dataset.tipo;
+                liAEliminar = this.closest('li');
+                viajeId = this.dataset.viajeId || null;
+
+                if (tipoAEliminar === 'actividad') {
+                    modalBodyText.textContent = "¿Estás seguro de que deseas eliminar esta actividad?";
+                } else if (tipoAEliminar === 'colaborador') {
+                    modalBodyText.textContent = "¿Estás seguro de que deseas eliminar a este colaborador?";
+                }
+
+                modalEliminar.show();
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                modalEliminar = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
+                btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar');
+                modalBodyText = document.getElementById('modal-body-text');
+
+                asignarEventosEliminar();
+
+                btnConfirmarEliminar.addEventListener('click', function () {
+                    let url = '';
+                    if (tipoAEliminar === 'actividad') {
+                        url = `/viajes/actividad/${idAEliminar}/eliminar/`;
+                    } else if (tipoAEliminar === 'colaborador') {
+                        url = `/viajes/viaje/${viajeId}/colaborador/${idAEliminar}/eliminar-colaborador/`;
+                    }
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                liAEliminar.remove();
+                                modalEliminar.hide();
+                            }
+                        });
+                });
+
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+            });
+
+            mapboxgl.accessToken = 'pk.eyJ1IjoiYW5pdGFtdCIsImEiOiJjbTlpc29pb3EwNWxwMmtzYzQ0NmY1ZjFiIn0.4iAF_BAMHBlqMe7CDHWjyg';
+
+            const direccion = `{{ viaje.destino.nombre }}, {{ viaje.destino.pais }}`;
+
+            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(direccion)}.json?access_token=${mapboxgl.accessToken}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.features && data.features.length > 0) {
+                        const [lng, lat] = data.features[0].center;
+
+                        const map = new mapboxgl.Map({
+                            container: 'map',
+                            style: 'mapbox://styles/mapbox/streets-v11',
+                            center: [lng, lat],
+                            zoom: 10
+                        });
+
+                        new mapboxgl.Marker()
+                            .setLngLat([lng, lat])
+                            .setPopup(new mapboxgl.Popup().setText(direccion))
+                            .addTo(map);
+                    } else {
+                        document.getElementById('map').innerHTML = '<p class="text-muted">No se pudo localizar esta dirección.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al geocodificar:', error);
+                    document.getElementById('map').innerHTML = '<p class="text-danger">No se pudo cargar el mapa.</p>';
+                });
         </script>
     {% endblock %}
 {% endblock %}

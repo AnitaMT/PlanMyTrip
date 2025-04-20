@@ -153,3 +153,5 @@ EMAIL_PORT = 1025
 EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = 'noreply@planmytrip.com'
 
+
+MAPBOX_TOKEN = 'pk.eyJ1IjoiYW5pdGFtdCIsImEiOiJjbTlpc29pb3EwNWxwMmtzYzQ0NmY1ZjFiIn0.4iAF_BAMHBlqMe7CDHWjyg'
