@@ -38,24 +38,15 @@ class CrearViajeForm(forms.ModelForm):
 
 
 class AgregarActividadForm(forms.ModelForm):
-    prioridad_actividad = forms.ChoiceField(
-        choices=Actividad.PRIORIDADES,
-        label="Prioridad",
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-
-    categoria_actividad = forms.ChoiceField(
-        choices=Actividad.CATEGORIAS,
-        label="Categoría",
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
     class Meta:
         model = Actividad
-        fields = ['titulo', 'descripcion', 'fecha_hora', 'ubicacion','coste_estimado']
+        fields = ['titulo', 'descripcion', 'fecha_hora', 'ubicacion', 'prioridad', 'categoria', 'coste_estimado']
         widgets = {
             'titulo': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.TextInput(attrs={'class': 'form-control'}),
-            'fecha_hora': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'fecha_hora': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'ubicacion': forms.TextInput(attrs={'class': 'form-control'}),
+            'prioridad': forms.Select(attrs={'class': 'form-control'}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
             'coste_estimado': forms.NumberInput(attrs={'class': 'form-control'}),
         }

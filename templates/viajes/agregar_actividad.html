@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}PlanMyTrip - Agregar Actividad{% endblock %}
+{% block src_css %}{% static 'css/agregar_actividad.css' %}{% endblock %}
 
 {% block content %}
     {% if messages %}
@@ -56,6 +57,8 @@
                        id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="avatar-container me-2">
                             <img src="
+
+
 
 
                                     {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"

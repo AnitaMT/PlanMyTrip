@@ -97,7 +97,8 @@
                            class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle user-dropdown"
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="avatar-container me-2">
-                                <img src="{% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                <img src="
+                                        {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                      alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
                             </div>
                             <div class="user-info d-none d-md-block">
@@ -195,6 +196,8 @@
                                                 class="fas fa-money-bill-wave me-2"></i>Presupuesto:</strong> {{ viaje.presupuesto_total }}
                                             €</p>
                                     {% endif %}
+                                    <h5><i class="fas fa-map me-2"></i>Ubicación en el mapa</h5>
+                                    <div id="map" style="height: 400px;" class="rounded-4"></div>
                                 </div>
                             </div>
                         </div>
@@ -240,9 +243,13 @@
                                         {% for actividad in viaje.actividades.all %}
                                             <li>
                                                 <i class="fas fa-users me-2"></i>
-                                                <a href="{% url 'viajes:detalles_actividad' actividad.pk %}" style="text-decoration:none; color: black;">{{ actividad.titulo }}  </a>
-                                                <a href="{% url 'viajes:editar_actividad' actividad.pk %}"><i class="fas fa-edit me-2"></i></a>
-                                                <a href="#" class="eliminar-actividad" data-id="{{ actividad.pk }}" data-tipo="actividad"> <i class="fas fa-trash-alt text-danger ms-2"></i></a>
+                                                <a href="{% url 'viajes:detalles_actividad' actividad.pk %}"
+                                                   style="text-decoration:none; color: black;">{{ actividad.titulo }}  </a>
+                                                <a href="{% url 'viajes:editar_actividad' actividad.pk %}"><i
+                                                        class="fas fa-edit me-2"></i></a>
+                                                <a href="#" class="eliminar-actividad" data-id="{{ actividad.pk }}"
+                                                   data-tipo="actividad"> <i
+                                                        class="fas fa-trash-alt text-danger ms-2"></i></a>
                                             </li>
                                         {% endfor %}
                                     </ul>
@@ -499,6 +506,36 @@
                     return cookieValue;
                 }
             });
+
+            mapboxgl.accessToken = 'pk.eyJ1IjoiYW5pdGFtdCIsImEiOiJjbTlpc29pb3EwNWxwMmtzYzQ0NmY1ZjFiIn0.4iAF_BAMHBlqMe7CDHWjyg';
+
+            const direccion = `{{ viaje.destino.nombre }}, {{ viaje.destino.pais }}`;
+
+            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(direccion)}.json?access_token=${mapboxgl.accessToken}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.features && data.features.length > 0) {
+                        const [lng, lat] = data.features[0].center;
+
+                        const map = new mapboxgl.Map({
+                            container: 'map',
+                            style: 'mapbox://styles/mapbox/streets-v11',
+                            center: [lng, lat],
+                            zoom: 10
+                        });
+
+                        new mapboxgl.Marker()
+                            .setLngLat([lng, lat])
+                            .setPopup(new mapboxgl.Popup().setText(direccion))
+                            .addTo(map);
+                    } else {
+                        document.getElementById('map').innerHTML = '<p class="text-muted">No se pudo localizar esta dirección.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al geocodificar:', error);
+                    document.getElementById('map').innerHTML = '<p class="text-danger">No se pudo cargar el mapa.</p>';
+                });
         </script>
     {% endblock %}
 {% endblock %}
