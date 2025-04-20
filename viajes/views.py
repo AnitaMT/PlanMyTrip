@@ -25,12 +25,14 @@ class RegistroUsuarioView(CreateView):
         messages.success(self.request, '¡Registro exitoso! Ahora puedes iniciar sesión.')
         return response
 
+
 class UsuarioLoginView(LoginView):
     template_name = 'registration/login.html'
 
     def form_invalid(self, form):
         error = 'Usuario y/o contraseña incorrecto. Pruebe de nuevo.'
         return self.render_to_response(self.get_context_data(form=form, error=error))
+
 
 class UsuarioLogoutView(LogoutView):
     template_name = 'registration/logged_out.html'
@@ -44,8 +46,16 @@ class PaginaInicioUsuarioView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         usuario = self.request.user
-        context['viajes_activos'] = Viaje.objects.filter(creador=usuario, estado='ACTIVO')
-        context['viajes_finalizados'] = Viaje.objects.filter(creador=usuario, estado='FINALIZADO')
+
+        viajes_creados_activos = Viaje.objects.filter(creador=usuario, estado='ACTIVO')
+        viajes_creados_finalizados = Viaje.objects.filter(creador=usuario, estado='FINALIZADO')
+
+        viajes_colaborando_activos = Viaje.objects.filter(colaboradores=usuario, estado='ACTIVO')
+        viajes_colaborando_finalizados = Viaje.objects.filter(colaboradores=usuario, estado='FINALIZADO')
+
+        context['viajes_activos'] = (viajes_creados_activos | viajes_colaborando_activos).distinct()
+        context['viajes_finalizados'] = (viajes_creados_finalizados | viajes_colaborando_finalizados).distinct()
+
         context['notificaciones_sin_leer_count'] = Notificacion.objects.filter(usuario=usuario, leido=False).count()
 
         return context
@@ -83,6 +93,7 @@ class CrearViajeView(LoginRequiredMixin, CreateView):
 
         return super().form_valid(form)
 
+
 class DetallesViajeView(LoginRequiredMixin, DetailView):
     model = Viaje
     template_name = 'viajes/detalles_viaje.html'
@@ -90,6 +101,9 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        viaje = self.object
+        context['es_creador'] = viaje.creador == self.request.user
+
         return context
 
 
@@ -131,6 +145,7 @@ class AgregarColaboradorView(LoginRequiredMixin, View):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+
 class EliminarColaboradorView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         colaborador_id = self.kwargs.get('pk')
@@ -142,6 +157,7 @@ class EliminarColaboradorView(LoginRequiredMixin, View):
         viaje.colaboradores.remove(colaborador)
 
         return JsonResponse({'success': True})
+
 
 class AgregarActividadView(LoginRequiredMixin, CreateView):
     model = Actividad
@@ -161,6 +177,7 @@ class AgregarActividadView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('viajes:detalles_viaje', kwargs={'pk': self.kwargs.get('pk')})
 
+
 class DetallesActividadView(LoginRequiredMixin, TemplateView):
     template_name = 'viajes/detalles_actividad.html'
 
@@ -169,6 +186,7 @@ class DetallesActividadView(LoginRequiredMixin, TemplateView):
         actividad = get_object_or_404(Actividad, pk=self.kwargs['pk'])
         context['actividad'] = actividad
         return context
+
 
 class EditarActividadView(LoginRequiredMixin, UpdateView):
     model = Actividad
