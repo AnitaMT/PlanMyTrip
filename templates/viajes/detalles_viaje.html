@@ -98,6 +98,12 @@
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="avatar-container me-2">
                                 <img src="
+
+
+
+
+
+
                                         {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                      alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
                             </div>
@@ -131,7 +137,7 @@
         <div class="quick-actions mb-5">
             <h5 class="mb-3">Acciones rápidas</h5>
             <div class="row g-3">
-                <div class="col-md-3 col-6">
+                <div class="col-md-2 col-4">
                     <a href="{% url 'viajes:crear_viaje' %}" class="action-card text-center p-3 rounded-3 d-block">
                         <div class="action-icon mb-2">
                             <i class="fas fa-plus-circle"></i>
@@ -139,7 +145,7 @@
                         <h6>Nuevo Viaje</h6>
                     </a>
                 </div>
-                <div class="col-md-3 col-6">
+                <div class="col-md-2 col-4">
                     <a href="#" class="action-card text-center p-3 rounded-3 d-block" data-bs-toggle="modal"
                        data-bs-target="#agregarColaboradorModal">
                         <div class="action-icon mb-2">
@@ -148,7 +154,7 @@
                         <h6>Invitar Amigos</h6>
                     </a>
                 </div>
-                <div class="col-md-3 col-6">
+                <div class="col-md-2 col-4">
                     <a href="#" class="action-card text-center p-3 rounded-3 d-block">
                         <div class="action-icon mb-2">
                             <i class="fas fa-file-invoice-dollar"></i>
@@ -156,7 +162,25 @@
                         <h6>Presupuestos</h6>
                     </a>
                 </div>
-                <div class="col-md-3 col-6">
+                <div class="col-md-2 col-4">
+                    <a href="#" class="action-card text-center p-3 rounded-3 d-block" data-bs-toggle="modal"
+                       data-bs-target="#agregarPagoModal">
+                        <div class="action-icon mb-2">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <h6>Agregar Pago</h6>
+                    </a>
+                </div>
+                <div class="col-md-2 col-4">
+                    <a href="#" class="action-card text-center p-3 rounded-3 d-block" data-bs-toggle="modal"
+                       data-bs-target="#deudasModal">
+                        <div class="action-icon mb-2">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <h6>Deudas</h6>
+                    </a>
+                </div>
+                <div class="col-md-2 col-4">
                     <a href="{% url 'viajes:inicio' %}" class="action-card text-center p-3 rounded-3 d-block">
                         <div class="action-icon mb-2">
                             <i class="fas fa-cog"></i>
@@ -216,10 +240,13 @@
                                         <ul class="list-unstyled">
                                             {% for colaborador in viaje.colaboradores.all %}
                                                 <li><i class="fas fa-user-friends me-2"></i>{{ colaborador.username }}
-                                                    <a href="#" class="eliminar-colaborador"
-                                                       data-id="{{ colaborador.pk }}" data-viaje-id="{{ viaje.id }}"
-                                                       data-tipo="colaborador"><i
-                                                            class="fas fa-trash-alt text-danger ms-2"></i></a>
+                                                    {% if es_creador %}
+                                                        <a href="#" class="text-danger ms-2 eliminar-colaborador"
+                                                           data-id="{{ colaborador.id }}" data-tipo="colaborador"
+                                                           data-viaje-id="{{ viaje.id }}">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </a>
+                                                    {% endif %}
                                                 </li>
                                             {% endfor %}
                                         </ul>
@@ -273,7 +300,49 @@
                             <div class="card-body">
                                 <h5 class="card-title text-primary"><i class="fas fa-wand-magic-sparkles me-2"></i>Sugerencias
                                 </h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Sección de Pagos y Deudas -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">
+                                    <i class="fas fa-money-bill-wave me-2"></i>Pagos Realizados
+                                </h5>
+                                <p>Resumen de los pagos realizados hasta ahora.</p>
+                                <a href="#" class="btn btn-primary" data-bs-toggle="modal"
+                                   data-bs-target="#agregarPagoModal">
+                                    <i class="fas fa-plus-circle"></i> Agregar Pago
+                                </a>
+                                <ul class="list-unstyled mt-3">
+                                    {% for pago in viaje.pagos.all %}
+                                        <li>{{ pago.descripcion }} - {{ pago.monto }}€</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">
+                                    <i class="fas fa-balance-scale me-2"></i>Deudas
+                                </h5>
+                                <p>Consulta el estado de las deudas entre los participantes.</p>
+                                <a href="#" class="btn btn-secondary" data-bs-toggle="modal"
+                                   data-bs-target="#deudasModal">
+                                    Ver Deudas
+                                </a>
+                                <ul class="list-unstyled mt-3">
+                                    {% for colaborador, deuda in deudas.items %}
+                                        <li>{{ colaborador.username }} debe {{ deuda }}€</li>
+                                    {% endfor %}
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -289,6 +358,7 @@
                     </a>
                 </div>
             </div>
+
             <!-- Modal para agregar colaboradores -->
             <div class="modal fade" id="agregarColaboradorModal" tabindex="-1"
                  aria-labelledby="agregarColaboradorModalLabel" aria-hidden="true">
@@ -332,6 +402,68 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                             <button type="button" id="btnConfirmarEliminar" class="btn btn-danger">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Agregar Pago -->
+            <div class="modal fade" id="agregarPagoModal" tabindex="-1" aria-labelledby="agregarPagoModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="agregarPagoModalLabel">Agregar Pago</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="agregarPagoForm">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="monto" class="form-label">Monto</label>
+                                    <input type="number" class="form-control" id="monto" name="monto" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="descripcion" class="form-label">Descripción</label>
+                                    <input type="text" class="form-control" id="descripcion" name="descripcion"
+                                           required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="colaborador" class="form-label">Colaborador</label>
+                                    <select class="form-select" id="colaborador" name="colaborador">
+                                        {% for colaborador in viaje.colaboradores.all %}
+                                            <option value="{{ colaborador.id }}">{{ colaborador.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="agregarPagoBtn">Registrar Pago</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Ver Deudas -->
+            <div class="modal fade" id="deudasModal" tabindex="-1" aria-labelledby="deudasModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deudasModalLabel">Deudas del Viaje</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <ul>
+                                {% for colaborador, deuda in deudas.items %}
+                                    <li>{{ colaborador.username }} debe {{ deuda }}€</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                         </div>
                     </div>
                 </div>
