@@ -1,14 +1,18 @@
 import json
+from collections import defaultdict
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
+from django.db.models import Sum, F
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.views import View
-from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView
+from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView, ListView
 from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm
-from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad
+from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto, MeGusta
 
 
 class IndexView(TemplateView):
@@ -101,8 +105,32 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
         viaje = self.object
+        deudas = calcular_deudas(self.request, viaje.id)
+        deudas_resumen = {}
+
+        for deudor, deudas_lista in deudas.items():
+            total = Decimal('0.00')
+
+            for deuda_info in deudas_lista:
+                cantidad = deuda_info['deuda']
+                total += cantidad
+
+            deudas_resumen[deudor.username] = round(Decimal(total), 2)
+
+        context['deudas'] = deudas_resumen
+        context['deudas_detalladas'] = deudas
+
         context['es_creador'] = viaje.creador == self.request.user
+
+        me_gustas_del_usuario = user.me_gustas_dados.all()
+
+        likes_del_viaje = me_gustas_del_usuario.filter(actividad__viaje=viaje)
+
+        ids_de_actividades = [like.actividad.id for like in likes_del_viaje]
+
+        context['liked_actividades'] = list(ids_de_actividades)
 
         return context
 
@@ -211,3 +239,130 @@ class EliminarActividadView(LoginRequiredMixin, View):
         actividad.delete()
 
         return JsonResponse({'success': True})
+
+
+class AgregarGastoView(LoginRequiredMixin, CreateView):
+    model = Gasto
+    fields = ['cantidad', 'descripcion', 'categoria', 'comprobante']
+    template_name = 'viajes/agregar_gasto.html'
+
+    def form_valid(self, form):
+        viaje = get_object_or_404(Viaje, pk=self.kwargs['pk'])
+        gasto = form.save(commit=False)
+        gasto.viaje = viaje
+        gasto.pagador = self.request.user
+        gasto.save()
+
+        participantes_ids = self.request.POST.getlist('participantes', None)
+
+        if participantes_ids:
+            participantes = UsuarioPersonalizado.objects.filter(id__in=participantes_ids)
+        else:
+            participantes = [viaje.creador] + list(viaje.colaboradores.all())
+
+        cantidad_por_persona = gasto.cantidad / len(participantes)
+
+        for participante in participantes:
+            DivisionGasto.objects.create(
+                gasto=gasto,
+                deudor=participante,
+                cantidad_a_pagar=cantidad_por_persona,
+                pagado=(participante == self.request.user)
+            )
+
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': '¡Gasto registrado correctamente!'
+            })
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            errors = {field: error[0] for field, error in form.errors.items()}
+            return JsonResponse({
+                'success': False,
+                'error': 'Error en el formulario',
+                'errors': errors
+            }, status=400)
+        return super().form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('viajes:detalles_viaje', kwargs={'pk': self.kwargs['pk']})
+
+def calcular_deudas(request, viaje_id):
+    viaje = get_object_or_404(Viaje, pk=viaje_id)
+    deudas = defaultdict(list)
+
+    divisiones_pendientes = DivisionGasto.objects.filter(
+        gasto__viaje=viaje,
+        pagado=False
+    ).select_related('gasto__pagador', 'deudor')
+
+    for division in divisiones_pendientes:
+        if division.deudor != division.gasto.pagador:
+            deudas[division.deudor].append({
+                'deudor': division.deudor,
+                'pagador': division.gasto.pagador,
+                'deuda': round(division.cantidad_a_pagar, 2)
+            })
+
+    return dict(deudas)
+
+class ListaGastosView(LoginRequiredMixin, ListView):
+    model = Gasto
+    template_name = 'viajes/lista_gastos.html'
+    context_object_name = 'gastos'
+
+    def get_queryset(self):
+        self.viaje = get_object_or_404(Viaje, pk=self.kwargs['pk'])
+        return Gasto.objects.filter(viaje=self.viaje).order_by('-fecha')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['viaje'] = self.viaje
+        context['deudas'] = calcular_deudas(self.request, self.viaje.id)
+        context['deudas_con_deudores'] = context['deudas']
+
+        gastos_deudores = {}
+
+        for gasto in context['gastos']:
+            todas_las_divisiones = DivisionGasto.objects.filter(gasto=gasto)
+
+            lista_deudores = []
+
+            for division in todas_las_divisiones:
+                if division.deudor != gasto.pagador:
+                    lista_deudores.append(division.deudor.username)
+
+            gastos_deudores[gasto.id] = lista_deudores
+
+        context['gastos_deudores'] = gastos_deudores
+
+        return context
+
+class LikeToggleView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        actividad = get_object_or_404(Actividad, pk=pk)
+        usuario = request.user
+
+        like_obj, created = MeGusta.objects.get_or_create(
+            actividad=actividad,
+            usuario=usuario
+        )
+        if not created:
+            like_obj.delete()
+            liked = False
+        else:
+            liked = True
+
+        total = actividad.me_gustas.count()
+
+        return JsonResponse({'liked': liked, 'count': total})
+
+class ActividadLikesView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        actividad = get_object_or_404(Actividad, pk=pk)
+        usernames = actividad.me_gustas.values_list('usuario__username', flat=True)
+        return JsonResponse({'usuarios': list(usernames)})

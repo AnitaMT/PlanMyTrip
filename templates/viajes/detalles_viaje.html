@@ -104,6 +104,9 @@
 
 
 
+
+
+
                                         {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                      alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
                             </div>
@@ -268,15 +271,31 @@
                                 {% if viaje.actividades.all %}
                                     <ul class="list-unstyled">
                                         {% for actividad in viaje.actividades.all %}
-                                            <li>
+                                            <li class="d-flex align-items-center mb-2">
                                                 <i class="fas fa-users me-2"></i>
                                                 <a href="{% url 'viajes:detalles_actividad' actividad.pk %}"
-                                                   style="text-decoration:none; color: black;">{{ actividad.titulo }}  </a>
-                                                <a href="{% url 'viajes:editar_actividad' actividad.pk %}"><i
-                                                        class="fas fa-edit me-2"></i></a>
-                                                <a href="#" class="eliminar-actividad" data-id="{{ actividad.pk }}"
-                                                   data-tipo="actividad"> <i
-                                                        class="fas fa-trash-alt text-danger ms-2"></i></a>
+                                                   class="me-auto text-decoration-none text-dark">
+                                                    {{ actividad.titulo }}
+                                                </a>
+                                                <!-- Botón Like -->
+                                                <a href="#" class="like-btn me-2" data-id="{{ actividad.pk }}">
+                                                    <i class="{% if actividad.pk in liked_actividades %}fa-solid fa-heart{% else %}fa-regular fa-heart{% endif %}"
+                                                       style="font-size:1.1rem; color: {% if actividad.pk in liked_actividades %}red{% else %}inherit{% endif %};"></i>
+                                                </a>
+                                                <!-- Contador -->
+                                                <a href="#" class="likes-count badge bg-light text-dark"
+                                                   data-id="{{ actividad.pk }}"
+                                                   data-bs-toggle="modal"
+                                                   data-bs-target="#likesModal">
+                                                    {{ actividad.me_gustas.count }}
+                                                </a>
+                                                <a href="{% url 'viajes:editar_actividad' actividad.pk %}">
+                                                    <i class="fas fa-edit me-2"></i>
+                                                </a>
+                                                <a href="#" class="eliminar-actividad text-danger"
+                                                   data-id="{{ actividad.pk }}" data-tipo="actividad">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </a>
                                             </li>
                                         {% endfor %}
                                     </ul>
@@ -305,44 +324,56 @@
                     </div>
                 </div>
 
-                <!-- Sección de Pagos y Deudas -->
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="card shadow-sm mb-4">
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title text-primary">
-                                    <i class="fas fa-money-bill-wave me-2"></i>Pagos Realizados
+                                    <i class="fas fa-scale-balanced me-2"></i>Resumen de Deudas
                                 </h5>
-                                <p>Resumen de los pagos realizados hasta ahora.</p>
-                                <a href="#" class="btn btn-primary" data-bs-toggle="modal"
-                                   data-bs-target="#agregarPagoModal">
-                                    <i class="fas fa-plus-circle"></i> Agregar Pago
-                                </a>
-                                <ul class="list-unstyled mt-3">
-                                    {% for pago in viaje.pagos.all %}
-                                        <li>{{ pago.descripcion }} - {{ pago.monto }}€</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="col-md-6">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title text-primary">
-                                    <i class="fas fa-balance-scale me-2"></i>Deudas
-                                </h5>
-                                <p>Consulta el estado de las deudas entre los participantes.</p>
-                                <a href="#" class="btn btn-secondary" data-bs-toggle="modal"
-                                   data-bs-target="#deudasModal">
-                                    Ver Deudas
-                                </a>
-                                <ul class="list-unstyled mt-3">
-                                    {% for colaborador, deuda in deudas.items %}
-                                        <li>{{ colaborador.username }} debe {{ deuda }}€</li>
-                                    {% endfor %}
-                                </ul>
+                                {% if deudas %}
+                                    <ul class="list-group list-group-flush">
+                                        {% for username, cantidad in deudas.items %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <img src="
+
+
+
+
+
+
+
+                                                            {% if usuario.foto_perfil %}{{ usuario.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                                         class="rounded-circle me-2" width="30" height="30">
+                                                    <span>{{ username }}</span>
+                                                </div>
+                                                <span class="badge bg-danger rounded-pill">{{ cantidad }}€</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <div class="mt-3 d-flex flex-wrap gap-2">
+                                        <a href="{% url 'viajes:lista_gastos' viaje.pk %}"
+                                           class="btn btn-secondary">
+                                            <i class="fas fa-list"></i> Ver deudas y gastos
+                                        </a>
+                                        <button class="btn btn-primary" data-bs-toggle="modal"
+                                                data-bs-target="#agregarPagoModal">
+                                            <i class="fas fa-money-bill-wave"></i> Agregar Pago
+                                        </button>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i>No hay pagos por realizar.
+                                        <div class="mt-3 d-flex flex-wrap gap-2">
+                                            <button class="btn btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#agregarPagoModal">
+                                                <i class="fas fa-money-bill-wave"></i> Agregar Pago
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -386,6 +417,7 @@
                 </div>
             </div>
 
+
             <!--Modal para mensaje de confirmación al eliminar actividad o colaborador -->
             <div class="modal fade" id="confirmarEliminarModal" tabindex="-1"
                  aria-labelledby="confirmarEliminarModalLabel" aria-hidden="true">
@@ -410,60 +442,145 @@
             <!-- Modal para Agregar Pago -->
             <div class="modal fade" id="agregarPagoModal" tabindex="-1" aria-labelledby="agregarPagoModalLabel"
                  aria-hidden="true">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="agregarPagoModalLabel">Agregar Pago</h5>
+                            <h5 class="modal-title" id="agregarPagoModalLabel">Agregar Gasto</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <form id="agregarPagoForm">
+                            <form id="agregarPagoForm" enctype="multipart/form-data">
                                 {% csrf_token %}
-                                <div class="mb-3">
-                                    <label for="monto" class="form-label">Monto</label>
-                                    <input type="number" class="form-control" id="monto" name="monto" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="descripcion" class="form-label">Descripción</label>
-                                    <input type="text" class="form-control" id="descripcion" name="descripcion"
-                                           required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="colaborador" class="form-label">Colaborador</label>
-                                    <select class="form-select" id="colaborador" name="colaborador">
-                                        {% for colaborador in viaje.colaboradores.all %}
-                                            <option value="{{ colaborador.id }}">{{ colaborador.username }}</option>
-                                        {% endfor %}
-                                    </select>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="cantidad" class="form-label">Cantidad (€)</label>
+                                            <input type="number" step="0.01" class="form-control" id="cantidad"
+                                                   name="cantidad" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="descripcion" class="form-label">Descripción</label>
+                                            <input type="text" class="form-control" id="descripcion" name="descripcion"
+                                                   required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="categoria" class="form-label">Categoría</label>
+                                            <select class="form-select" id="categoria" name="categoria" required>
+                                                <option value="">Selecciona una categoría</option>
+                                                <option value="ALOJAMIENTO">Alojamiento</option>
+                                                <option value="COMIDA">Comida</option>
+                                                <option value="TRANSPORTE">Transporte</option>
+                                                <option value="ACTIVIDADES">Actividades</option>
+                                                <option value="OTROS" selected>Otros</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="comprobante" class="form-label">Comprobante (opcional)</label>
+                                            <input type="file" class="form-control" id="comprobante" name="comprobante"
+                                                   accept="image/*">
+                                            <small class="text-muted">Sube una foto del ticket o factura.</small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">¿Con quién compartes este gasto?</label>
+                                            <div class="border p-2 rounded">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                           name="participantes" value="{{ viaje.creador.id }}"
+                                                           id="participante_creador" checked>
+                                                    <label class="form-check-label" for="participante_creador">
+                                                        {{ viaje.creador.username }} (Tú)
+                                                    </label>
+                                                </div>
+                                                {% for colaborador in viaje.colaboradores.all %}
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox"
+                                                               name="participantes" value="{{ colaborador.id }}"
+                                                               id="participante_{{ colaborador.id }}" checked>
+                                                        <label class="form-check-label"
+                                                               for="participante_{{ colaborador.id }}">
+                                                            {{ colaborador.username }}
+                                                        </label>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            <small class="text-muted">Desmarca a quienes no participen en este
+                                                gasto.</small>
+                                        </div>
+                                    </div>
                                 </div>
                             </form>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary" id="agregarPagoBtn">Registrar Pago</button>
+                            <button type="button" class="btn btn-primary" id="agregarPagoBtn">
+                                <i class="fas fa-save me-1"></i> Registrar Gasto
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
+
             <!-- Modal para Ver Deudas -->
             <div class="modal fade" id="deudasModal" tabindex="-1" aria-labelledby="deudasModalLabel"
                  aria-hidden="true">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="deudasModalLabel">Deudas del Viaje</h5>
+                            <h5 class="modal-title" id="deudasModalLabel">Detalle de Deudas</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <ul>
-                                {% for colaborador, deuda in deudas.items %}
-                                    <li>{{ colaborador.username }} debe {{ deuda }}€</li>
-                                {% endfor %}
-                            </ul>
+                            {% if deudas_detalladas %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>Deudor</th>
+                                            <th>Debe a</th>
+                                            <th class="text-end">Cantidad</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for deudor, deudas in deudas_detalladas.items %}
+                                            {% for deuda in deudas %}
+                                                <tr>
+                                                    <td>{{ deudor.username }}</td>
+                                                    <td>{{ deuda.pagador.username }}</td>
+                                                    <td class="text-end">{{ deuda.deuda }}€</td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success">
+                                    No hay deudas pendientes en este viaje.
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para mostrar los likes -->
+            <div class="modal fade" id="likesModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">A quienes les gustó</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <ul id="likes-list" class="list-unstyled mb-0">
+
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -486,117 +603,11 @@
             let btnConfirmarEliminar = null;
             let modalBodyText = null;
 
-            document.getElementById('agregarColaboradorBtn').addEventListener('click', async function () {
-                const username = document.getElementById('username').value.trim();
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-                if (!username) {
-                    showAlert('danger', 'Por favor ingresa un nombre de usuario');
-                    return;
-                }
-
-                try {
-                    const response = await fetch("{% url 'viajes:agregar_colaborador' viaje.id %}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken
-                        },
-                        body: JSON.stringify({username: username})
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok && data.success) {
-                        actualizarColaboradoresList(data);
-                        bootstrap.Modal.getInstance(document.getElementById('agregarColaboradorModal')).hide();
-                        document.getElementById('agregarColaboradorForm').reset();
-                    } else {
-                        showAlert('danger', data.error || 'Error desconocido');
-                    }
-                } catch (error) {
-                    showAlert('danger', 'Error de red o del servidor');
-                }
-            });
-
-            function showAlert(type, message) {
-                const alert = document.getElementById('bootstrapAlert');
-                const alertMessage = document.getElementById('alert-message');
-
-                alert.className = 'alert alert-dismissible fade show d-none position-fixed start-50 translate-middle-x';
-                alert.style.top = '20px';
-
-                if (type === 'danger') {
-                    alert.classList.add('alert-danger');
-                    alertMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${message}`;
-                }
-
-                alert.classList.remove('d-none');
-
-                setTimeout(() => {
-                    alert.classList.add('d-none');
-                }, 5000);
-            }
-
-            function actualizarColaboradoresList(data) {
-                const colaboradoresList = document.querySelector('.participantes ul') ||
-                    document.createElement('ul');
-
-                if (!colaboradoresList.parentElement) {
-                    colaboradoresList.className = 'list-unstyled';
-                    document.querySelector('.participantes').appendChild(colaboradoresList);
-                }
-
-                const yaExiste = Array.from(colaboradoresList.children).some(li =>
-                    li.textContent.trim().toLowerCase().includes(data.username.toLowerCase())
-                );
-
-                if (yaExiste) return;
-
-                const newItem = document.createElement('li');
-                newItem.innerHTML = `
-            <i class="fas fa-user-friends me-2"></i>${data.username}
-            <a href="#" class="text-danger ms-2 eliminar-colaborador"
-               data-id="${data.id}" data-tipo="colaborador" data-viaje-id="${data.viaje_id}">
-                <i class="fas fa-trash-alt"></i>
-            </a>
-        `;
-                colaboradoresList.appendChild(newItem);
-
-                const noColabMsg = document.querySelector('.participantes .text-muted');
-                if (noColabMsg) noColabMsg.remove();
-
-                asignarEventosEliminar();
-            }
-
-            function asignarEventosEliminar() {
-                document.querySelectorAll('.eliminar-actividad, .eliminar-colaborador').forEach(boton => {
-                    boton.removeEventListener('click', handleEliminarClick); // evitar duplicados
-                    boton.addEventListener('click', handleEliminarClick);
-                });
-            }
-
-            function handleEliminarClick(e) {
-                e.preventDefault();
-                idAEliminar = this.dataset.id;
-                tipoAEliminar = this.dataset.tipo;
-                liAEliminar = this.closest('li');
-                viajeId = this.dataset.viajeId || null;
-
-                if (tipoAEliminar === 'actividad') {
-                    modalBodyText.textContent = "¿Estás seguro de que deseas eliminar esta actividad?";
-                } else if (tipoAEliminar === 'colaborador') {
-                    modalBodyText.textContent = "¿Estás seguro de que deseas eliminar a este colaborador?";
-                }
-
-                modalEliminar.show();
-            }
-
             document.addEventListener('DOMContentLoaded', function () {
+                // ——— Inicialización eliminación ———
                 modalEliminar = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
                 btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar');
                 modalBodyText = document.getElementById('modal-body-text');
-
                 asignarEventosEliminar();
 
                 btnConfirmarEliminar.addEventListener('click', function () {
@@ -606,7 +617,6 @@
                     } else if (tipoAEliminar === 'colaborador') {
                         url = `/viajes/viaje/${viajeId}/colaborador/${idAEliminar}/eliminar-colaborador/`;
                     }
-
                     fetch(url, {
                         method: 'POST',
                         headers: {
@@ -623,51 +633,230 @@
                         });
                 });
 
-                function getCookie(name) {
-                    let cookieValue = null;
-                    if (document.cookie && document.cookie !== '') {
-                        const cookies = document.cookie.split(';');
-                        for (let i = 0; i < cookies.length; i++) {
-                            const cookie = cookies[i].trim();
-                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                break;
+                // ——— Agregar colaborador ———
+                document.getElementById('agregarColaboradorBtn').addEventListener('click', async function () {
+                    const username = document.getElementById('username').value.trim();
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    if (!username) {
+                        showAlert('danger', 'Por favor ingresa un nombre de usuario');
+                        return;
+                    }
+                    try {
+                        const response = await fetch("{% url 'viajes:agregar_colaborador' viaje.id %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrfToken
+                            },
+                            body: JSON.stringify({username: username})
+                        });
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                            actualizarColaboradoresList(data);
+                            bootstrap.Modal.getInstance(document.getElementById('agregarColaboradorModal')).hide();
+                            document.getElementById('agregarColaboradorForm').reset();
+                        } else {
+                            showAlert('danger', data.error || 'Error desconocido');
+                        }
+                    } catch (error) {
+                        showAlert('danger', 'Error de red o del servidor');
+                    }
+                });
+
+                // ——— Registrar pago ———
+                document.getElementById('agregarPagoBtn').addEventListener('click', async function () {
+                    const form = document.getElementById('agregarPagoForm');
+                    const formData = new FormData(form);
+                    const btn = this;
+                    if (!formData.get('cantidad') || !formData.get('descripcion') || !formData.get('categoria')) {
+                        showAlert('danger', 'Completa los campos obligatorios');
+                        return;
+                    }
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Guardando...';
+                    try {
+                        const response = await fetch("{% url 'viajes:agregar_gasto' viaje.pk %}", {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            showAlert('success', data.message);
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            if (data.errors) {
+                                let errorMsg = '';
+                                for (const [field, error] of Object.entries(data.errors)) {
+                                    errorMsg += `${field}: ${error}\n`;
+                                }
+                                showAlert('danger', errorMsg);
+                            } else {
+                                showAlert('danger', data.error || 'Error desconocido');
                             }
                         }
+                    } catch (error) {
+                        showAlert('danger', 'Error de conexión: ' + error.message);
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-save me-1"></i> Registrar Gasto';
                     }
-                    return cookieValue;
-                }
-            });
-
-            mapboxgl.accessToken = 'pk.eyJ1IjoiYW5pdGFtdCIsImEiOiJjbTlpc29pb3EwNWxwMmtzYzQ0NmY1ZjFiIn0.4iAF_BAMHBlqMe7CDHWjyg';
-
-            const direccion = `{{ viaje.destino.nombre }}, {{ viaje.destino.pais }}`;
-
-            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(direccion)}.json?access_token=${mapboxgl.accessToken}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.features && data.features.length > 0) {
-                        const [lng, lat] = data.features[0].center;
-
-                        const map = new mapboxgl.Map({
-                            container: 'map',
-                            style: 'mapbox://styles/mapbox/streets-v11',
-                            center: [lng, lat],
-                            zoom: 10
-                        });
-
-                        new mapboxgl.Marker()
-                            .setLngLat([lng, lat])
-                            .setPopup(new mapboxgl.Popup().setText(direccion))
-                            .addTo(map);
-                    } else {
-                        document.getElementById('map').innerHTML = '<p class="text-muted">No se pudo localizar esta dirección.</p>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al geocodificar:', error);
-                    document.getElementById('map').innerHTML = '<p class="text-danger">No se pudo cargar el mapa.</p>';
                 });
+
+                // ——— Sistema de “likes” ———
+                // 1) Toggle like
+                document.querySelectorAll('.like-btn').forEach(btn => {
+                    btn.addEventListener('click', async e => {
+                        e.preventDefault();
+                        const pk = btn.dataset.id;
+                        const resp = await fetch(
+                            `{% url 'viajes:toggle_like' 0 %}`.replace('0', pk),
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': getCookie('csrftoken'),
+                                    'Accept': 'application/json',
+                                },
+                            }
+                        );
+                        const data = await resp.json();
+                        const icon = btn.querySelector('i');
+
+                        if (data.liked) {
+                            icon.classList.remove('fa-regular');
+                            icon.classList.add('fa-solid');
+                            icon.style.color = 'red';
+                        } else {
+                            icon.classList.remove('fa-solid');
+                            icon.classList.add('fa-regular');
+                            icon.style.color = 'inherit';
+                        }
+
+                        document
+                            .querySelector(`.likes-count[data-id="${pk}"]`)
+                            .textContent = data.count;
+                    });
+                });
+                // 2) Mostrar lista en modal
+                document.querySelectorAll('.likes-count').forEach(link => {
+                    link.addEventListener('click', async () => {
+                        const pk = link.dataset.id;
+                        const resp = await fetch(
+                            `{% url 'viajes:actividad_likes' 0 %}`.replace('0', pk)
+                        );
+                        const data = await resp.json();
+                        const ul = document.getElementById('likes-list');
+                        ul.innerHTML = '';
+                        if (data.usuarios.length) {
+                            data.usuarios.forEach(u => {
+                                const li = document.createElement('li');
+                                li.textContent = u;
+                                ul.appendChild(li);
+                            });
+                        } else {
+                            ul.innerHTML = '<li class="text-muted">Nadie aún</li>';
+                        }
+                    });
+                });
+
+                // ——— Mapbox ———
+                mapboxgl.accessToken = 'pk.eyJ1IjoiYW5pdGFtdCIsImEiOiJjbTlpc29pb3EwNWxwMmtzYzQ0NmY1ZjFiIn0.4iAF_BAMHBlqMe7CDHWjyg';
+                const direccion = `{{ viaje.destino.nombre }}, {{ viaje.destino.pais }}`;
+                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(direccion)}.json?access_token=${mapboxgl.accessToken}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.features && data.features.length > 0) {
+                            const [lng, lat] = data.features[0].center;
+                            const map = new mapboxgl.Map({
+                                container: 'map',
+                                style: 'mapbox://styles/mapbox/streets-v11',
+                                center: [lng, lat],
+                                zoom: 10
+                            });
+                            new mapboxgl.Marker()
+                                .setLngLat([lng, lat])
+                                .setPopup(new mapboxgl.Popup().setText(direccion))
+                                .addTo(map);
+                        } else {
+                            document.getElementById('map').innerHTML = '<p class="text-muted">No se pudo localizar esta dirección.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al geocodificar:', error);
+                        document.getElementById('map').innerHTML = '<p class="text-danger">No se pudo cargar el mapa.</p>';
+                    });
+            }); // fin DOMContentLoaded
+
+            // ——— Funciones auxiliares ———
+            function asignarEventosEliminar() {
+                document.querySelectorAll('.eliminar-actividad, .eliminar-colaborador').forEach(boton => {
+                    boton.removeEventListener('click', handleEliminarClick);
+                    boton.addEventListener('click', handleEliminarClick);
+                });
+            }
+
+            function handleEliminarClick(e) {
+                e.preventDefault();
+                idAEliminar = this.dataset.id;
+                tipoAEliminar = this.dataset.tipo;
+                liAEliminar = this.closest('li');
+                viajeId = this.dataset.viajeId || null;
+                modalBodyText.textContent = tipoAEliminar === 'actividad'
+                    ? "¿Estás seguro de que deseas eliminar esta actividad?"
+                    : "¿Estás seguro de que deseas eliminar a este colaborador?";
+                modalEliminar.show();
+            }
+
+            function showAlert(type, message) {
+                const alert = document.getElementById('bootstrapAlert');
+                const alertMessage = document.getElementById('alert-message');
+                alert.className = 'alert alert-dismissible fade show d-none position-fixed start-50 translate-middle-x';
+                alert.style.top = '20px';
+                if (type === 'danger') {
+                    alert.classList.add('alert-danger');
+                    alertMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${message}`;
+                }
+                alert.classList.remove('d-none');
+                setTimeout(() => alert.classList.add('d-none'), 5000);
+            }
+
+            function actualizarColaboradoresList(data) {
+                const colaboradoresList = document.querySelector('.participantes ul') ||
+                    document.createElement('ul');
+                if (!colaboradoresList.parentElement) {
+                    colaboradoresList.className = 'list-unstyled';
+                    document.querySelector('.participantes').appendChild(colaboradoresList);
+                }
+                const yaExiste = Array.from(colaboradoresList.children).some(li =>
+                    li.textContent.trim().toLowerCase().includes(data.username.toLowerCase())
+                );
+                if (yaExiste) return;
+                const newItem = document.createElement('li');
+                newItem.innerHTML = `
+            <i class="fas fa-user-friends me-2"></i>${data.username}
+            <a href="#" class="text-danger ms-2 eliminar-colaborador"
+               data-id="${data.id}" data-tipo="colaborador" data-viaje-id="${data.viaje_id}">
+                <i class="fas fa-trash-alt"></i>
+            </a>
+        `;
+                colaboradoresList.appendChild(newItem);
+                const noColabMsg = document.querySelector('.participantes .text-muted');
+                if (noColabMsg) noColabMsg.remove();
+                asignarEventosEliminar();
+            }
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    document.cookie.split(';').forEach(c => {
+                        const [k, v] = c.trim().split('=');
+                        if (k === name) cookieValue = decodeURIComponent(v);
+                    });
+                }
+                return cookieValue;
+            }
         </script>
     {% endblock %}
 {% endblock %}
