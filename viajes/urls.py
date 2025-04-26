@@ -3,7 +3,7 @@ from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, 
 from django.urls import path
 from viajes.views import IndexView, RegistroUsuarioView, UsuarioLoginView, UsuarioLogoutView, PaginaInicioUsuarioView, \
     CrearViajeView, DetallesViajeView, AgregarColaboradorView, EditarActividadView, EliminarActividadView, \
-    AgregarActividadView, ListaGastosView, AgregarGastoView, calcular_deudas
+    AgregarActividadView, ListaGastosView, AgregarGastoView, calcular_deudas, LikeToggleView, ActividadLikesView
 from views import EliminarColaboradorView, DetallesActividadView
 
 app_name = 'viajes'
@@ -29,5 +29,6 @@ urlpatterns = [
     path('<int:pk>/gastos/', ListaGastosView.as_view(), name='lista_gastos'),
     path('<int:pk>/agregar-gasto/', AgregarGastoView.as_view(), name='agregar_gasto'),
     path('<int:viaje_id>/deudas/', calcular_deudas, name='calcular_deudas'),
-
+    path('actividad/<int:pk>/toggle-like/', LikeToggleView.as_view(), name='toggle_like'),
+    path('actividad/<int:pk>/likes/', ActividadLikesView.as_view(),name='actividad_likes'),
 ]

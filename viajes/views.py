@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from decimal import Decimal
 
 from django.contrib import messages
@@ -11,7 +12,7 @@ from django.urls import reverse_lazy, reverse
 from django.views import View
 from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView, ListView
 from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm
-from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto
+from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto, MeGusta
 
 
 class IndexView(TemplateView):
@@ -104,9 +105,32 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
         viaje = self.object
+        deudas = calcular_deudas(self.request, viaje.id)
+        deudas_resumen = {}
+
+        for deudor, deudas_lista in deudas.items():
+            total = Decimal('0.00')
+
+            for deuda_info in deudas_lista:
+                cantidad = deuda_info['deuda']
+                total += cantidad
+
+            deudas_resumen[deudor.username] = round(Decimal(total), 2)
+
+        context['deudas'] = deudas_resumen
+        context['deudas_detalladas'] = deudas
+
         context['es_creador'] = viaje.creador == self.request.user
-        context['deudas'] = calcular_deudas(self.request, viaje.id)
+
+        me_gustas_del_usuario = user.me_gustas_dados.all()
+
+        likes_del_viaje = me_gustas_del_usuario.filter(actividad__viaje=viaje)
+
+        ids_de_actividades = [like.actividad.id for like in likes_del_viaje]
+
+        context['liked_actividades'] = list(ids_de_actividades)
 
         return context
 
@@ -269,42 +293,22 @@ class AgregarGastoView(LoginRequiredMixin, CreateView):
 
 def calcular_deudas(request, viaje_id):
     viaje = get_object_or_404(Viaje, pk=viaje_id)
-    participantes = [viaje.creador] + list(viaje.colaboradores.all())
-    deudas = {}
-    total_participantes = Decimal(len(participantes))
+    deudas = defaultdict(list)
 
-    for participante in participantes:
-        gastos_compartidos = DivisionGasto.objects.filter(
-            deudor=participante,
-            gasto__viaje=viaje,
-            pagado=False
-        ).aggregate(total=Sum('cantidad_a_pagar'))['total'] or Decimal('0')
+    divisiones_pendientes = DivisionGasto.objects.filter(
+        gasto__viaje=viaje,
+        pagado=False
+    ).select_related('gasto__pagador', 'deudor')
 
-        gastos_pagados = Gasto.objects.filter(
-            pagador=participante,
-            viaje=viaje
-        ).aggregate(total=Sum('cantidad'))['total'] or Decimal('0')
+    for division in divisiones_pendientes:
+        if division.deudor != division.gasto.pagador:
+            deudas[division.deudor].append({
+                'deudor': division.deudor,
+                'pagador': division.gasto.pagador,
+                'deuda': round(division.cantidad_a_pagar, 2)
+            })
 
-        deuda_final = gastos_compartidos - (gastos_pagados / total_participantes)
-
-        if deuda_final > 0:
-            division = DivisionGasto.objects.filter(
-                deudor=participante,
-                gasto__viaje=viaje,
-                pagado=False
-            ).exclude(deudor=F('gasto__pagador')).select_related('gasto__pagador').first()
-
-            if division:
-                deuda_info = {
-                    'deudor': participante,
-                    'pagador': division.gasto.pagador,
-                    'deuda': round(deuda_final, 2)
-                }
-
-                if participante not in deudas:
-                    deudas[participante] = []
-                deudas[participante].append(deuda_info)
-    return deudas
+    return dict(deudas)
 
 class ListaGastosView(LoginRequiredMixin, ListView):
     model = Gasto
@@ -319,8 +323,7 @@ class ListaGastosView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['viaje'] = self.viaje
         context['deudas'] = calcular_deudas(self.request, self.viaje.id)
-        deudas_con_deudores = calcular_deudas(self.request, self.viaje.id)
-        context['deudas_con_deudores'] = deudas_con_deudores
+        context['deudas_con_deudores'] = context['deudas']
 
         gastos_deudores = {}
 
@@ -339,3 +342,27 @@ class ListaGastosView(LoginRequiredMixin, ListView):
 
         return context
 
+class LikeToggleView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        actividad = get_object_or_404(Actividad, pk=pk)
+        usuario = request.user
+
+        like_obj, created = MeGusta.objects.get_or_create(
+            actividad=actividad,
+            usuario=usuario
+        )
+        if not created:
+            like_obj.delete()
+            liked = False
+        else:
+            liked = True
+
+        total = actividad.me_gustas.count()
+
+        return JsonResponse({'liked': liked, 'count': total})
+
+class ActividadLikesView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        actividad = get_object_or_404(Actividad, pk=pk)
+        usernames = actividad.me_gustas.values_list('usuario__username', flat=True)
+        return JsonResponse({'usuarios': list(usernames)})
