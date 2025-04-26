@@ -1,14 +1,17 @@
 import json
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
+from django.db.models import Sum, F
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.views import View
-from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView
+from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView, ListView
 from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm
-from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad
+from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto
 
 
 class IndexView(TemplateView):
@@ -103,6 +106,7 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         viaje = self.object
         context['es_creador'] = viaje.creador == self.request.user
+        context['deudas'] = calcular_deudas(self.request, viaje.id)
 
         return context
 
@@ -211,3 +215,127 @@ class EliminarActividadView(LoginRequiredMixin, View):
         actividad.delete()
 
         return JsonResponse({'success': True})
+
+
+class AgregarGastoView(LoginRequiredMixin, CreateView):
+    model = Gasto
+    fields = ['cantidad', 'descripcion', 'categoria', 'comprobante']
+    template_name = 'viajes/agregar_gasto.html'
+
+    def form_valid(self, form):
+        viaje = get_object_or_404(Viaje, pk=self.kwargs['pk'])
+        gasto = form.save(commit=False)
+        gasto.viaje = viaje
+        gasto.pagador = self.request.user
+        gasto.save()
+
+        participantes_ids = self.request.POST.getlist('participantes', None)
+
+        if participantes_ids:
+            participantes = UsuarioPersonalizado.objects.filter(id__in=participantes_ids)
+        else:
+            participantes = [viaje.creador] + list(viaje.colaboradores.all())
+
+        cantidad_por_persona = gasto.cantidad / len(participantes)
+
+        for participante in participantes:
+            DivisionGasto.objects.create(
+                gasto=gasto,
+                deudor=participante,
+                cantidad_a_pagar=cantidad_por_persona,
+                pagado=(participante == self.request.user)
+            )
+
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': '¡Gasto registrado correctamente!'
+            })
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            errors = {field: error[0] for field, error in form.errors.items()}
+            return JsonResponse({
+                'success': False,
+                'error': 'Error en el formulario',
+                'errors': errors
+            }, status=400)
+        return super().form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('viajes:detalles_viaje', kwargs={'pk': self.kwargs['pk']})
+
+def calcular_deudas(request, viaje_id):
+    viaje = get_object_or_404(Viaje, pk=viaje_id)
+    participantes = [viaje.creador] + list(viaje.colaboradores.all())
+    deudas = {}
+    total_participantes = Decimal(len(participantes))
+
+    for participante in participantes:
+        gastos_compartidos = DivisionGasto.objects.filter(
+            deudor=participante,
+            gasto__viaje=viaje,
+            pagado=False
+        ).aggregate(total=Sum('cantidad_a_pagar'))['total'] or Decimal('0')
+
+        gastos_pagados = Gasto.objects.filter(
+            pagador=participante,
+            viaje=viaje
+        ).aggregate(total=Sum('cantidad'))['total'] or Decimal('0')
+
+        deuda_final = gastos_compartidos - (gastos_pagados / total_participantes)
+
+        if deuda_final > 0:
+            division = DivisionGasto.objects.filter(
+                deudor=participante,
+                gasto__viaje=viaje,
+                pagado=False
+            ).exclude(deudor=F('gasto__pagador')).select_related('gasto__pagador').first()
+
+            if division:
+                deuda_info = {
+                    'deudor': participante,
+                    'pagador': division.gasto.pagador,
+                    'deuda': round(deuda_final, 2)
+                }
+
+                if participante not in deudas:
+                    deudas[participante] = []
+                deudas[participante].append(deuda_info)
+    return deudas
+
+class ListaGastosView(LoginRequiredMixin, ListView):
+    model = Gasto
+    template_name = 'viajes/lista_gastos.html'
+    context_object_name = 'gastos'
+
+    def get_queryset(self):
+        self.viaje = get_object_or_404(Viaje, pk=self.kwargs['pk'])
+        return Gasto.objects.filter(viaje=self.viaje).order_by('-fecha')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['viaje'] = self.viaje
+        context['deudas'] = calcular_deudas(self.request, self.viaje.id)
+        deudas_con_deudores = calcular_deudas(self.request, self.viaje.id)
+        context['deudas_con_deudores'] = deudas_con_deudores
+
+        gastos_deudores = {}
+
+        for gasto in context['gastos']:
+            todas_las_divisiones = DivisionGasto.objects.filter(gasto=gasto)
+
+            lista_deudores = []
+
+            for division in todas_las_divisiones:
+                if division.deudor != gasto.pagador:
+                    lista_deudores.append(division.deudor.username)
+
+            gastos_deudores[gasto.id] = lista_deudores
+
+        context['gastos_deudores'] = gastos_deudores
+
+        return context
+

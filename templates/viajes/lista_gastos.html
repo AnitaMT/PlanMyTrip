@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}PlanMyTrip - Lista de Gastos{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>Gastos del Viaje</h2>
+        <a href="{% url 'viajes:agregar_gasto' viaje.pk %}" class="btn btn-primary mb-3">
+            <i class="fas fa-plus"></i> Nuevo Gasto
+        </a>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Resumen de Deudas</h5>
+                <ul class="list-group">
+                    {% for deudor, deudas_usuario in deudas_con_deudores.items %}
+                        {% for deuda in deudas_usuario %}
+                            <li class="list-group-item">
+                                {{ deuda.deudor.username }} debe <strong>{{ deuda.deuda }}€</strong>
+                                a {{ deuda.pagador.username }}.
+                            </li>
+                        {% endfor %}
+                    {% empty %}
+                        <li class="list-group-item">No hay deudas pendientes.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Historial de Gastos</h5>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Pagador</th>
+                        <th>Cantidad</th>
+                        <th>Fecha</th>
+                        <th>Deudor/es</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for gasto in gastos %}
+                        <tr>
+                            <td>{{ gasto.descripcion }}</td>
+                            <td>{{ gasto.pagador.username }}</td>
+                            <td>{{ gasto.cantidad }}€</td>
+                            <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
+                            <td>
+                                {% for gasto_id, deudores in gastos_deudores.items %}
+                                    {% if gasto_id == gasto.id %}
+                                        {% if deudores %}
+                                            {{ deudores|join:", " }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

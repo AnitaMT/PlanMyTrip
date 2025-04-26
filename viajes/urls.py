@@ -2,7 +2,8 @@ from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, 
     PasswordResetCompleteView
 from django.urls import path
 from viajes.views import IndexView, RegistroUsuarioView, UsuarioLoginView, UsuarioLogoutView, PaginaInicioUsuarioView, \
-    CrearViajeView, DetallesViajeView, AgregarColaboradorView, EditarActividadView, EliminarActividadView, AgregarActividadView
+    CrearViajeView, DetallesViajeView, AgregarColaboradorView, EditarActividadView, EliminarActividadView, \
+    AgregarActividadView, ListaGastosView, AgregarGastoView, calcular_deudas
 from views import EliminarColaboradorView, DetallesActividadView
 
 app_name = 'viajes'
@@ -25,5 +26,8 @@ urlpatterns = [
     path('<int:pk>/agregar-actividad/', AgregarActividadView.as_view(), name='agregar_actividad'),
     path('actividad/<int:pk>/editar/', EditarActividadView.as_view(), name='editar_actividad'),
     path('actividad/<int:pk>/eliminar/', EliminarActividadView.as_view(), name='eliminar-actividad'),
+    path('<int:pk>/gastos/', ListaGastosView.as_view(), name='lista_gastos'),
+    path('<int:pk>/agregar-gasto/', AgregarGastoView.as_view(), name='agregar_gasto'),
+    path('<int:viaje_id>/deudas/', calcular_deudas, name='calcular_deudas'),
 
 ]
