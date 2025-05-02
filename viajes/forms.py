@@ -50,3 +50,16 @@ class AgregarActividadForm(forms.ModelForm):
             'categoria': forms.Select(attrs={'class': 'form-control'}),
             'coste_estimado': forms.NumberInput(attrs={'class': 'form-control'}),
         }
+
+class EditarViajeForm(forms.ModelForm):
+    class Meta:
+        model = Viaje
+        fields = ['nombre', 'destino', 'fecha_inicio', 'fecha_fin', 'estado']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'destino': forms.Select(attrs={'class': 'form-control'}),
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'},format='%Y-%m-%d'),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'},format='%Y-%m-%d'),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+        }
+
