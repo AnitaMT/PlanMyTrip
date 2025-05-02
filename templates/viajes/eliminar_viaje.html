@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}PlanMyTrip - Eliminar Viaje{% endblock %}
+{% block src_css %}{% static 'css/' %}{% endblock %}
+
+{% block content %}
+<h2>¿Estás seguro de que quieres eliminar el viaje "{{ object.nombre }}"?</h2>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Confirmar</button>
+    <a href="{% url 'viajes:inicio' %}">Cancelar</a>
+</form>
+{% endblock %}

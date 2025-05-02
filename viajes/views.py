@@ -4,14 +4,14 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, LogoutView
-from django.db.models import Sum, F
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views import View
 from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView, ListView
-from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm
+from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm, EditarViajeForm
 from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto, MeGusta
 
 
@@ -134,6 +134,30 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
 
         return context
 
+class EditarViajeView(LoginRequiredMixin, UpdateView):
+    model = Viaje
+    form_class = EditarViajeForm
+    template_name = 'viajes/editar_viaje.html'
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Viaje actualizado con exito')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('viajes:detalles_viaje', kwargs={'pk': self.object.pk})
+
+
+
+class EliminarViajeView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        viaje_id = self.kwargs['pk']
+        viaje = get_object_or_404(Viaje, pk=viaje_id)
+
+        viaje.delete()
+
+        return JsonResponse({'success': True})
+
+
 
 class AgregarColaboradorView(LoginRequiredMixin, View):
     def post(self, request, viaje_id):
@@ -220,9 +244,6 @@ class EditarActividadView(LoginRequiredMixin, UpdateView):
     model = Actividad
     form_class = AgregarActividadForm
     template_name = 'viajes/agregar_actividad.html'
-
-    def get_queryset(self):
-        return Actividad.objects.filter(creador=self.request.user)
 
     def form_valid(self, form):
         messages.success(self.request, 'Actividad actualizada con exito')
