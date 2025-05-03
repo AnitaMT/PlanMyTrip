@@ -7,11 +7,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, LogoutView
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.views import View
 from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView, ListView
-from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm, EditarViajeForm
+from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm, EditarViajeForm, FotoPerfilForm, \
+    CambiarUsernameForm, CambiarPasswordForm
 from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto, MeGusta
 
 
@@ -387,3 +388,44 @@ class ActividadLikesView(LoginRequiredMixin, View):
         actividad = get_object_or_404(Actividad, pk=pk)
         usernames = actividad.me_gustas.values_list('usuario__username', flat=True)
         return JsonResponse({'usuarios': list(usernames)})
+
+
+class AjustesUsuarioView(LoginRequiredMixin, TemplateView):
+    template_name = 'viajes/ajustes_usuario.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['foto_form'] = FotoPerfilForm(instance=self.request.user)
+        context['username_form'] = CambiarUsernameForm(instance=self.request.user)
+        context['password_form'] = CambiarPasswordForm(user=self.request.user)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if 'foto_submit' in request.POST:
+            return self.procesar_foto_perfil(request)
+        elif 'username_submit' in request.POST:
+            return self.procesar_username(request)
+        elif 'password_submit' in request.POST:
+            return self.procesar_password(request)
+        return redirect('viajes:ajustes_usuario')
+
+    def procesar_foto_perfil(self, request):
+        form = FotoPerfilForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Foto de perfil actualizada correctamente')
+        return redirect('viajes:ajustes_usuario')
+
+    def procesar_username(self, request):
+        form = CambiarUsernameForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Nombre de usuario actualizado correctamente')
+        return redirect('viajes:ajustes_usuario')
+
+    def procesar_password(self, request):
+        form = CambiarPasswordForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Contraseña cambiada correctamente')
+        return redirect('viajes:ajustes_usuario')

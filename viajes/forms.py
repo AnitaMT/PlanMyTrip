@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 
 from viajes.models import UsuarioPersonalizado, Viaje, Destino, Actividad
 
@@ -63,3 +63,34 @@ class EditarViajeForm(forms.ModelForm):
             'estado': forms.Select(attrs={'class': 'form-control'}),
         }
 
+class FotoPerfilForm(forms.ModelForm):
+    class Meta:
+        model = UsuarioPersonalizado
+        fields = ['foto_perfil']
+        widgets = {
+            'foto_perfil': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
+                'onchange': 'previewImage(this)'
+            })
+        }
+
+class CambiarUsernameForm(forms.ModelForm):
+    class Meta:
+        model = UsuarioPersonalizado
+        fields = ['username']
+        widgets = {
+            'username': forms.TextInput(attrs={
+                'class': 'form-control'
+            })
+        }
+        labels = {
+            'username': 'Nuevo nombre de usuario'
+        }
+
+class CambiarPasswordForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['old_password'].widget.attrs.update({'class': 'form-control'})
+        self.fields['new_password1'].widget.attrs.update({'class': 'form-control'})
+        self.fields['new_password2'].widget.attrs.update({'class': 'form-control'})
