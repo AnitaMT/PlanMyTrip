@@ -29,13 +29,17 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
                             <li class="dropdown-header">Notificaciones recientes</li>
-                            {% for notificacion in ultimas_notificaciones|slice:":5" %}
+                            {% for notificacion in ultimas_notificaciones %}
                                 <li>
-                                    <a class="dropdown-item" href="{{ notificacion.enlace_relacionado }}">
-                                        <div class="notification-content">
+                                    <a class="dropdown-item d-flex justify-content-between align-items-start"
+                                       href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
+                                        <div>
                                             <div class="notification-text">{{ notificacion.mensaje }}</div>
                                             <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
                                         </div>
+                                        {% if notificacion.leido == False %}
+                                            <span class="badge bg-primary">nuevo</span>
+                                        {% endif %}
                                     </a>
                                 </li>
                             {% empty %}
@@ -44,7 +48,12 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a href="#" class="dropdown-item text-center text-primary">Ver todas</a></li>
+                            <li>
+                                <a href="{% url 'viajes:inicio' %}"
+                                   class="dropdown-item text-center text-primary">
+                                    Ver todas
+                                </a>
+                            </li>
                         </ul>
                     </div>
 
@@ -55,6 +64,7 @@
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="avatar-container me-2">
                                 <img src="
+
                                         {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                      alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
                             </div>
