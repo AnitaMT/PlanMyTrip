@@ -29,22 +29,32 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
                             <li class="dropdown-header">Notificaciones recientes</li>
-                            {% for notificacion in ultimas_notificaciones|slice:":5" %}
+                            {% for notificacion in ultimas_notificaciones %}
+                            {% if notificacion.leido == False %}
                                 <li>
-                                    <a class="dropdown-item" href="{{ notificacion.enlace_relacionado }}">
-                                        <div class="notification-content">
+                                    <a class="dropdown-item d-flex justify-content-between align-items-start"
+                                       href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
+                                        <div>
                                             <div class="notification-text">{{ notificacion.mensaje }}</div>
                                             <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
                                         </div>
+                                            <span class="badge bg-primary">nuevo</span>
                                     </a>
                                 </li>
+                            {% endif %}
                             {% empty %}
-                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>
+{#                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
                             {% endfor %}
+                            <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a href="#" class="dropdown-item text-center text-primary">Ver todas</a></li>
+                            <li>
+                                <a href="{% url 'viajes:notificaciones' %}"
+                                   class="dropdown-item text-center text-primary">
+                                    Ver todas
+                                </a>
+                            </li>
                         </ul>
                     </div>
 
@@ -64,7 +74,7 @@
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{% url 'viajes:inicio' %}"><i
+                            <li><a class="dropdown-item" href="{% url 'viajes:ajustes_usuario' %}"><i
                                     class="fas fa-user-cog me-2"></i>Ajustes</a></li>
                             <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a>
                             </li>

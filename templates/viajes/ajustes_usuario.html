@@ -1,9 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}PlanMyTrip - Crear Viaje{% endblock %}
-{% block src_css %}{% static 'css/crear_viaje.css' %}{% endblock %}
+
+{% block title %}PlanMyTrip - Ajustes de Usuario{% endblock %}
+
+{% block src_css %}{% static 'css/ajustes_usuario.css' %}{% endblock %}
 
 {% block content %}
+    <body class="d-flex flex-column min-vh-100">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container-fluid">
@@ -82,45 +85,99 @@
         </div>
     </nav>
 
-    <div class="container form-container mt-5">
-        <h2 class="mb-4 text-primary">Crea tu próxima aventura</h2>
-        <form method="post">
-            {% csrf_token %}
+    <div class="container py-5">
+        <div class="row">
+            <!-- Columna izquierda - Foto de perfil -->
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="profile-pic-container mb-3">
+                            <img id="image-preview"
+                                 src="
 
-            <div class="mb-3">
-                <label for="id_nombre" class="form-label">Nombre del Viaje</label>
-                <input type="text" name="nombre" class="form-control" id="id_nombre" required>
+
+                                         {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                 alt="Foto de perfil"
+                                 class="img-fluid rounded-circle profile-pic">
+                        </div>
+                        <h3 class="mb-3">{{ user.username }}</h3>
+                        <p class="text-muted">Miembro desde: {{ user.fecha_registro|date:"F Y" }}</p>
+
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="id_foto_perfil" class="btn btn-outline-primary">
+                                    <i class="fas fa-camera me-2"></i>Seleccionar imagen
+                                    {{ foto_form.foto_perfil }}
+                                </label>
+                            </div>
+                            <button type="submit" name="foto_submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Guardar cambios
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="id_destino_nombre" class="form-label">Destino (ej: Cancún, México)</label>
-                <input type="text" name="destino_nombre" class="form-control" id="id_destino_nombre" required>
-                <small class="form-text text-muted">Escribe el nombre del destino y el país separados por coma</small>
-            </div>
-
-            <div class="mb-3">
-                <label for="id_categoria_destino" class="form-label">Tipo de destino</label>
-                <select name="categoria_destino" class="form-select" id="id_categoria_destino" required>
-                    <option value="" selected disabled>Selecciona una categoría</option>
-                    {% for value, label in form.categoria_destino.field.choices %}
-                        <option value="{{ value }}">{{ label }}</option>
+            <!-- Columna derecha - Ajustes -->
+            <div class="col-md-8">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                     {% endfor %}
-                </select>
-            </div>
+                {% endif %}
 
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="id_fecha_inicio" class="form-label">Fecha de inicio</label>
-                    <input type="date" name="fecha_inicio" class="form-control" id="id_fecha_inicio" required>
+                <!-- Cambiar nombre de usuario -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Cambiar nombre de usuario</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {{ username_form.username.label_tag }}
+                                {{ username_form.username }}
+                            </div>
+                            <button type="submit" name="username_submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Actualizar
+                            </button>
+                        </form>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="id_fecha_fin" class="form-label">Fecha de fin</label>
-                    <input type="date" name="fecha_fin" class="form-control" id="id_fecha_fin" required>
+
+                <!-- Cambiar contraseña -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-lock me-2"></i>Cambiar contraseña</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {{ password_form.old_password.label_tag }}
+                                {{ password_form.old_password }}
+                            </div>
+                            <div class="mb-3">
+                                {{ password_form.new_password1.label_tag }}
+                                {{ password_form.new_password1 }}
+                                <small class="form-text text-muted">{{ password_form.new_password1.help_text }}</small>
+                            </div>
+                            <div class="mb-3">
+                                {{ password_form.new_password2.label_tag }}
+                                {{ password_form.new_password2 }}
+                            </div>
+                            <button type="submit" name="password_submit" class="btn btn-primary">
+                                <i class="fas fa-key me-2"></i>Cambiar contraseña
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-
-            <button type="submit" class="btn btn-primary">Crear viaje</button>
-        </form>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -139,4 +196,22 @@
             </div>
         </div>
     </footer>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('image-preview');
+            const file = input.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+            }
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 {% endblock %}

@@ -6,12 +6,14 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, LogoutView
+from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.views import View
 from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView, ListView
-from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm, EditarViajeForm
+from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm, EditarViajeForm, FotoPerfilForm, \
+    CambiarUsernameForm, CambiarPasswordForm
 from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto, MeGusta
 
 
@@ -61,6 +63,7 @@ class PaginaInicioUsuarioView(LoginRequiredMixin, TemplateView):
         context['viajes_finalizados'] = (viajes_creados_finalizados | viajes_colaborando_finalizados).distinct()
 
         context['notificaciones_sin_leer_count'] = Notificacion.objects.filter(usuario=usuario, leido=False).count()
+        context['ultimas_notificaciones'] = Notificacion.objects.filter(usuario=usuario).order_by('-fecha_creacion')[:5]
 
         return context
 
@@ -185,6 +188,11 @@ class AgregarColaboradorView(LoginRequiredMixin, View):
 
             viaje.colaboradores.add(usuario)
 
+            mensaje = f"Has sido añadido al viaje '{viaje.nombre}' por: {request.user.username}"
+            enlace = reverse('viajes:detalles_viaje', kwargs={'pk': viaje.id})
+
+            Notificacion.objects.create(usuario=usuario, mensaje=mensaje, tipo='COLABORADOR', enlace_relacionado=enlace)
+
             return JsonResponse({
                 'success': True,
                 'username': usuario.username,
@@ -222,8 +230,18 @@ class AgregarActividadView(LoginRequiredMixin, CreateView):
         viaje_id = self.kwargs.get('pk')
         actividad.viaje = get_object_or_404(Viaje, pk=viaje_id)
         actividad.save()
-        messages.success(self.request, 'Actividad agregada con éxito')
 
+        viaje = actividad.viaje
+        usuarios_a_notificar = list(viaje.colaboradores.all()) + [viaje.creador]
+        usuarios_a_notificar = [u for u in set(usuarios_a_notificar) if u != self.request.user]
+
+        mensaje = f"{self.request.user.username} ha añadido la actividad: {actividad.titulo}"
+        enlace = reverse('viajes:detalles_viaje', kwargs={'pk': viaje.pk})
+
+        for u in usuarios_a_notificar:
+            Notificacion.objects.create(usuario=u, mensaje=mensaje, tipo='ACTIVIDAD', enlace_relacionado=enlace)
+
+        messages.success(self.request, 'Actividad agregada con éxito')
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -246,6 +264,16 @@ class EditarActividadView(LoginRequiredMixin, UpdateView):
     template_name = 'viajes/agregar_actividad.html'
 
     def form_valid(self, form):
+        actividad = form.save()
+        viaje = actividad.viaje
+        usuarios_a_notificar = list(viaje.colaboradores.all()) + [viaje.creador]
+        usuarios_a_notificar = [u for u in set(usuarios_a_notificar) if u != self.request.user]
+        mensaje = f"{self.request.user.username} modificó la actividad: {actividad.titulo}"
+        enlace = reverse('viajes:detalles_viaje', kwargs={'pk': viaje.pk})
+
+        for u in usuarios_a_notificar:
+            Notificacion.objects.create(usuario=u, mensaje=mensaje, tipo='ACTIVIDAD', enlace_relacionado=enlace)
+
         messages.success(self.request, 'Actividad actualizada con exito')
         return super().form_valid(form)
 
@@ -291,11 +319,20 @@ class AgregarGastoView(LoginRequiredMixin, CreateView):
                 pagado=(participante == self.request.user)
             )
 
+        participantes = viaje.colaboradores.all() | UsuarioPersonalizado.objects.filter(pk=viaje.creador.pk)
+        participantes = participantes.distinct().exclude(pk=self.request.user.pk)
+        mensaje = f"{self.request.user.username} registró un gasto de {gasto.cantidad}€ en '{gasto.descripcion}'"
+        enlace = reverse('viajes:detalles_viaje', kwargs={'pk': viaje.pk})
+
+        for participante in participantes:
+            Notificacion.objects.create(usuario=participante, mensaje=mensaje, tipo='GASTO', enlace_relacionado=enlace)
+
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
                 'message': '¡Gasto registrado correctamente!'
             })
+
 
         return super().form_valid(form)
 
@@ -368,15 +405,20 @@ class LikeToggleView(LoginRequiredMixin, View):
         actividad = get_object_or_404(Actividad, pk=pk)
         usuario = request.user
 
-        like_obj, created = MeGusta.objects.get_or_create(
-            actividad=actividad,
-            usuario=usuario
-        )
-        if not created:
-            like_obj.delete()
-            liked = False
-        else:
+        like_obj, created = MeGusta.objects.get_or_create(actividad=actividad, usuario=usuario)
+
+        if created and actividad.creador != usuario:
+            mensaje = f"A {usuario.username} le gustó tu actividad: {actividad.titulo}"
+            enlace = reverse('viajes:detalles_actividad', kwargs={'pk': actividad.pk})
+
+            Notificacion.objects.create(usuario=actividad.creador, mensaje=mensaje, tipo='OTROS', enlace_relacionado=enlace)
+
             liked = True
+        else:
+            if not created:
+                like_obj.delete()
+            liked = False
+
 
         total = actividad.me_gustas.count()
 
@@ -387,3 +429,81 @@ class ActividadLikesView(LoginRequiredMixin, View):
         actividad = get_object_or_404(Actividad, pk=pk)
         usernames = actividad.me_gustas.values_list('usuario__username', flat=True)
         return JsonResponse({'usuarios': list(usernames)})
+
+
+class AjustesUsuarioView(LoginRequiredMixin, TemplateView):
+    template_name = 'viajes/ajustes_usuario.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['foto_form'] = FotoPerfilForm(instance=self.request.user)
+        context['username_form'] = CambiarUsernameForm(instance=self.request.user)
+        context['password_form'] = CambiarPasswordForm(user=self.request.user)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if 'foto_submit' in request.POST:
+            return self.procesar_foto_perfil(request)
+        elif 'username_submit' in request.POST:
+            return self.procesar_username(request)
+        elif 'password_submit' in request.POST:
+            return self.procesar_password(request)
+        return redirect('viajes:ajustes_usuario')
+
+    def procesar_foto_perfil(self, request):
+        form = FotoPerfilForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Foto de perfil actualizada correctamente')
+        return redirect('viajes:ajustes_usuario')
+
+    def procesar_username(self, request):
+        form = CambiarUsernameForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Nombre de usuario actualizado correctamente')
+        return redirect('viajes:ajustes_usuario')
+
+    def procesar_password(self, request):
+        form = CambiarPasswordForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Contraseña cambiada correctamente')
+        return redirect('viajes:ajustes_usuario')
+
+class NotificacionRedirectView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        notificacion = get_object_or_404(Notificacion, pk=pk, usuario=self.request.user)
+        notificacion.leido = True
+        notificacion.save(update_fields=['leido'])
+
+        destino = notificacion.enlace_relacionado or reverse('viajes:inicio')
+
+        return redirect(destino)
+
+class NotificacionListView(LoginRequiredMixin, TemplateView):
+    template_name = 'viajes/notificaciones.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        todas_notificaciones = Notificacion.objects.filter(usuario=self.request.user).order_by('-fecha_creacion')
+        paginator = Paginator(todas_notificaciones, 10)
+        page = self.request.GET.get('page')
+        context['page_obj'] = paginator.get_page(page)
+
+        return context
+
+class MarcarTodasLeidasView(LoginRequiredMixin, View):
+    def post(self, request):
+        Notificacion.objects.filter(usuario=self.request.user, leido=False).update(leido=True)
+
+        return redirect('viajes:notificaciones')
+
+
+class EliminarNotificacionView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        notificacion_id = self.kwargs.get('pk')
+        notificacion = get_object_or_404(Notificacion, pk=notificacion_id)
+        notificacion.delete()
+
+        return JsonResponse({'success': True})

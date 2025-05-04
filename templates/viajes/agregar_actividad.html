@@ -57,10 +57,6 @@
                        id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="avatar-container me-2">
                             <img src="
-
-
-
-
                                     {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                  alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
                         </div>
@@ -69,7 +65,7 @@
                         </div>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="{% url 'viajes:inicio' %}"><i
+                        <li><a class="dropdown-item" href="{% url 'viajes:ajustes_usuario' %}"><i
                                 class="fas fa-user-cog me-2"></i>Ajustes</a></li>
                         <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a></li>
                         <li>
@@ -97,4 +93,21 @@
                    value="{% if form.instance.pk %}Guardar Cambios{% else %}Agregar Actividad{% endif %}">
         </form>
     </form>
+
+    <!-- Footer -->
+    <footer class="footer bg-primary text-white py-4 mt-auto">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
 {% endblock %}

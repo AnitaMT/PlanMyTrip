@@ -4,8 +4,8 @@ from django.urls import path
 from viajes.views import IndexView, RegistroUsuarioView, UsuarioLoginView, UsuarioLogoutView, PaginaInicioUsuarioView, \
     CrearViajeView, DetallesViajeView, AgregarColaboradorView, EditarActividadView, EliminarActividadView, \
     AgregarActividadView, ListaGastosView, AgregarGastoView, calcular_deudas, LikeToggleView, ActividadLikesView, \
-    EditarViajeView, EliminarViajeView
-from views import EliminarColaboradorView, DetallesActividadView
+    EditarViajeView, EliminarViajeView, NotificacionRedirectView, NotificacionListView, MarcarTodasLeidasView
+from views import EliminarColaboradorView, DetallesActividadView, AjustesUsuarioView, EliminarNotificacionView
 
 app_name = 'viajes'
 
@@ -34,4 +34,9 @@ urlpatterns = [
     path('<int:viaje_id>/deudas/', calcular_deudas, name='calcular_deudas'),
     path('actividad/<int:pk>/toggle-like/', LikeToggleView.as_view(), name='toggle_like'),
     path('actividad/<int:pk>/likes/', ActividadLikesView.as_view(),name='actividad_likes'),
+    path('ajustes-usuario/', AjustesUsuarioView.as_view(),name='ajustes_usuario'),
+    path('notificaciones/<int:pk>/', NotificacionRedirectView.as_view(), name='notificacion_redireccion'),
+    path('notificaciones/', NotificacionListView.as_view(), name='notificaciones'),
+    path('notificaciones/marcar-todas/', MarcarTodasLeidasView.as_view(), name='notificaciones_marcar_todas'),
+    path('notificaciones/<int:pk>/eliminar-notificacion/', EliminarNotificacionView.as_view(), name='eliminar_notificacion'),
 ]
