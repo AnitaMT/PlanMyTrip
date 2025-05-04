@@ -28,7 +28,7 @@ class RegistroUsuarioView(CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        messages.success(self.request, '¡Registro exitoso! Ahora puedes iniciar sesión.')
+        messages.success(self.request, '¡Registro exitoso! Ahora puedes iniciar sesión.', extra_tags='registro')
         return response
 
 
