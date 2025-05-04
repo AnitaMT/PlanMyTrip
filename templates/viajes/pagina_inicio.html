@@ -30,6 +30,7 @@
                         <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
                             <li class="dropdown-header">Notificaciones recientes</li>
                             {% for notificacion in ultimas_notificaciones %}
+                            {% if notificacion.leido == False %}
                                 <li>
                                     <a class="dropdown-item d-flex justify-content-between align-items-start"
                                        href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
@@ -37,19 +38,19 @@
                                             <div class="notification-text">{{ notificacion.mensaje }}</div>
                                             <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
                                         </div>
-                                        {% if notificacion.leido == False %}
                                             <span class="badge bg-primary">nuevo</span>
-                                        {% endif %}
                                     </a>
                                 </li>
+                            {% endif %}
                             {% empty %}
-                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>
+{#                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
                             {% endfor %}
+                            <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
-                                <a href="{% url 'viajes:inicio' %}"
+                                <a href="{% url 'viajes:notificaciones' %}"
                                    class="dropdown-item text-center text-primary">
                                     Ver todas
                                 </a>

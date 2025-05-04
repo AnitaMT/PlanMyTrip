@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, LogoutView
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
@@ -186,6 +187,11 @@ class AgregarColaboradorView(LoginRequiredMixin, View):
                 }, status=400)
 
             viaje.colaboradores.add(usuario)
+
+            mensaje = f"Has sido añadido al viaje '{viaje.nombre}' por: {request.user.username}"
+            enlace = reverse('viajes:detalles_viaje', kwargs={'pk': viaje.id})
+
+            Notificacion.objects.create(usuario=usuario, mensaje=mensaje, tipo='COLABORADOR', enlace_relacionado=enlace)
 
             return JsonResponse({
                 'success': True,
@@ -474,3 +480,30 @@ class NotificacionRedirectView(LoginRequiredMixin, View):
         destino = notificacion.enlace_relacionado or reverse('viajes:inicio')
 
         return redirect(destino)
+
+class NotificacionListView(LoginRequiredMixin, TemplateView):
+    template_name = 'viajes/notificaciones.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        todas_notificaciones = Notificacion.objects.filter(usuario=self.request.user).order_by('-fecha_creacion')
+        paginator = Paginator(todas_notificaciones, 10)
+        page = self.request.GET.get('page')
+        context['page_obj'] = paginator.get_page(page)
+
+        return context
+
+class MarcarTodasLeidasView(LoginRequiredMixin, View):
+    def post(self, request):
+        Notificacion.objects.filter(usuario=self.request.user, leido=False).update(leido=True)
+
+        return redirect('viajes:notificaciones')
+
+
+class EliminarNotificacionView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        notificacion_id = self.kwargs.get('pk')
+        notificacion = get_object_or_404(Notificacion, pk=notificacion_id)
+        notificacion.delete()
+
+        return JsonResponse({'success': True})
