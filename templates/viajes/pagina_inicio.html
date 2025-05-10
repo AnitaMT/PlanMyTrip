@@ -30,20 +30,20 @@
                         <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
                             <li class="dropdown-header">Notificaciones recientes</li>
                             {% for notificacion in ultimas_notificaciones %}
-                            {% if notificacion.leido == False %}
-                                <li>
-                                    <a class="dropdown-item d-flex justify-content-between align-items-start"
-                                       href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
-                                        <div>
-                                            <div class="notification-text">{{ notificacion.mensaje }}</div>
-                                            <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
-                                        </div>
+                                {% if notificacion.leido == False %}
+                                    <li>
+                                        <a class="dropdown-item d-flex justify-content-between align-items-start"
+                                           href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
+                                            <div>
+                                                <div class="notification-text">{{ notificacion.mensaje }}</div>
+                                                <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
+                                            </div>
                                             <span class="badge bg-primary">nuevo</span>
-                                    </a>
-                                </li>
-                            {% endif %}
+                                        </a>
+                                    </li>
+                                {% endif %}
                             {% empty %}
-{#                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
+                                {#                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
                             {% endfor %}
                             <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             <li>
@@ -108,17 +108,25 @@
                         <div class="col-md-6">
                             <div class="stats-card p-4 rounded-3 shadow-sm bg-white">
                                 <div class="row text-center">
-                                    <div class="col-4">
+                                    <div class="col-3">
                                         <div class="stat-value text-primary">{{ viajes_activos.count }}</div>
                                         <div class="stat-label">Viajes activos</div>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-3">
                                         <div class="stat-value text-success">{{ viajes_finalizados.count }}</div>
                                         <div class="stat-label">Viajes completados</div>
                                     </div>
-                                    <div class="col-4">
-                                        <div class="stat-value text-info">{{ notificaciones_sin_leer_count }}</div>
-                                        <div class="stat-label">Notificaciones</div>
+                                    <div class="col-3">
+                                        <a href="{% url 'viajes:notificaciones' %}" class="text-decoration-none">
+                                            <div class="stat-value text-info">{{ notificaciones_sin_leer_count }}</div>
+                                            <div class="stat-label">Notificaciones</div>
+                                        </a>
+                                    </div>
+                                    <div class="col-3">
+                                        <a href="{% url 'viajes:solicitudes_recibidas' %}" class="text-decoration-none">
+                                            <div class="stat-value text-warning">{{ solicitudes_pendientes_count }}</div>
+                                            <div class="stat-label text-dark">Solicitudes</div>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -132,6 +140,12 @@
                         <h2 class="section-title">Tus Viajes</h2>
                         <a href="{% url 'viajes:crear_viaje' %}" class="btn btn-primary btn-create">
                             <i class="fas fa-plus me-2"></i>Nuevo Viaje
+                        </a>
+                        <a href="{% url 'viajes:usuarios_disponibles' %}" class="btn btn-primary btn-create">
+                            <i class="fas fa-plus me-2"></i>Añadir nuevo amigo
+                        </a>
+                        <a href="{% url 'viajes:lista_amigos' %}" class="btn btn-primary btn-create">
+                            <i class="fas fa-plus me-2"></i>Ver amigos
                         </a>
                     </div>
 

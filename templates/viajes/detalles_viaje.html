@@ -411,8 +411,15 @@
                             <form id="agregarColaboradorForm">
                                 {% csrf_token %}
                                 <div class="mb-3">
-                                    <label for="username" class="form-label">Nombre de usuario</label>
-                                    <input type="text" class="form-control" id="username" name="username" required>
+                                    <label for="usuario_id" class="form-label">Añade un colaborador</label>
+                                    <select class="form-select" id="usuario_id" name="usuario_id" required>
+                                        <option selected disabled value="">-- Selecciona un amigo --</option>
+                                        {% for amigo in amigos %}
+                                            <option value="{{amigo.id}}">{{amigo.username}}</option>
+                                        {% empty %}
+                                            <option disabled>No tienes amigos aún</option>
+                                        {% endfor %}
+                                    </select>
                                     <div class="invalid-feedback" id="username-error"></div>
                                 </div>
                             </form>
@@ -638,10 +645,11 @@
 
                 // ——— Agregar colaborador ———
                 document.getElementById('agregarColaboradorBtn').addEventListener('click', async function () {
-                    const username = document.getElementById('username').value.trim();
+                    const select = document.getElementById('usuario_id');
+                    const usuarioId = select.value;
                     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                    if (!username) {
-                        showAlert('danger', 'Por favor ingresa un nombre de usuario');
+                    if (!usuarioId) {
+                        showAlert('danger', 'Por favor selecciona un amigo');
                         return;
                     }
                     try {
@@ -651,7 +659,7 @@
                                 'Content-Type': 'application/json',
                                 'X-CSRFToken': csrfToken
                             },
-                            body: JSON.stringify({username: username})
+                            body: JSON.stringify({ usuario_id: usuarioId })
                         });
                         const data = await response.json();
                         if (response.ok && data.success) {
