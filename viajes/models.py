@@ -9,9 +9,9 @@ class UsuarioPersonalizado(AbstractUser):
     email = models.EmailField(unique=True)
     foto_perfil = models.ImageField(upload_to="fotos_perfil/", null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
-
     groups = models.ManyToManyField('auth.Group', related_name="usuarios_personalizados", blank=True)
     user_permissions = models.ManyToManyField('auth.Permission', related_name="usuarios_personalizados", blank=True)
+    amigos = models.ManyToManyField('self', symmetrical=True, related_name="amigos_de", blank=True)
 
     def __str__(self):
         return self.username
@@ -153,6 +153,8 @@ class Notificacion(models.Model):
         ('COMENTARIO', 'Nuevo Comentario'),
         ('COLABORADOR', 'Nuevo Colaborador'),
         ('PAGO', 'Recordatorio de Pago'),
+        ('SOLICITUD_AMISTAD', 'Solicitud de Amistad'),
+        ('SOLICITUD_ACEPTADA', 'Solicitud Aceptada'),
         ('OTROS', 'Otros')
     ]
 
@@ -185,3 +187,16 @@ class SugerenciaIA(models.Model):
 
     def __str__(self):
         return f"Sugerencia de {self.tipo} para {self.destino.nombre}"
+
+class SolicitudAmistad(models.Model):
+    emisor = models.ForeignKey(UsuarioPersonalizado, on_delete=models.CASCADE, related_name='solicitudes_enviadas')
+    receptor = models.ForeignKey(UsuarioPersonalizado, on_delete=models.CASCADE, related_name='solicitudes_recibidas')
+    fecha = models.DateTimeField(auto_now_add=True)
+    aceptada = models.BooleanField(null=True)
+
+    class Meta:
+        unique_together = ('emisor', 'receptor')
+
+    def __str__(self):
+        estado = 'pendiente' if self.aceptada is None else ('aceptada' if self.aceptada else 'rechazada')
+        return f"{self.emisor}→{self.receptor} ({estado})"

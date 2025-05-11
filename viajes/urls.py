@@ -4,7 +4,8 @@ from django.urls import path
 from viajes.views import IndexView, RegistroUsuarioView, UsuarioLoginView, UsuarioLogoutView, PaginaInicioUsuarioView, \
     CrearViajeView, DetallesViajeView, AgregarColaboradorView, EditarActividadView, EliminarActividadView, \
     AgregarActividadView, ListaGastosView, AgregarGastoView, calcular_deudas, LikeToggleView, ActividadLikesView, \
-    EditarViajeView, EliminarViajeView, NotificacionRedirectView, NotificacionListView, MarcarTodasLeidasView
+    EditarViajeView, EliminarViajeView, NotificacionRedirectView, NotificacionListView, MarcarTodasLeidasView, \
+    ListaAmigosView, ResponderSolicitudView, EnviarSolicitudView, ListaSolicitudesView, UsuariosDisponiblesView
 from views import EliminarColaboradorView, DetallesActividadView, AjustesUsuarioView, EliminarNotificacionView
 
 app_name = 'viajes'
@@ -23,6 +24,11 @@ urlpatterns = [
     path('<int:pk>/', DetallesViajeView.as_view(), name='detalles_viaje'),
     path('<int:pk>/editar-viaje/', EditarViajeView.as_view(), name='editar_viaje'),
     path('<int:pk>/eliminar-viaje/', EliminarViajeView.as_view(), name='eliminar_viaje'),
+    path('amistad/enviar/<int:pk>/', EnviarSolicitudView.as_view(), name='enviar_solicitud'),
+    path('amistad/usuarios/', UsuariosDisponiblesView.as_view(), name='usuarios_disponibles'),
+    path('amistad/recibidas/', ListaSolicitudesView.as_view(), name='solicitudes_recibidas'),
+    path('amistad/responder/<int:pk>/', ResponderSolicitudView.as_view(), name='responder_solicitud'),
+    path('amistad/lista/', ListaAmigosView.as_view(), name='lista_amigos'),
     path('<int:viaje_id>/agregar-colaborador/', AgregarColaboradorView.as_view(), name='agregar_colaborador'),
     path('viaje/<int:viaje_id>/colaborador/<int:pk>/eliminar-colaborador/', EliminarColaboradorView.as_view(), name='eliminar_colaborador'),
     path('actividad/<int:pk>/detalles-actividad/', DetallesActividadView.as_view(), name='detalles_actividad'),

@@ -1,7 +1,6 @@
 import json
 from collections import defaultdict
 from decimal import Decimal
-
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -14,7 +13,8 @@ from django.views import View
 from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView, ListView
 from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm, EditarViajeForm, FotoPerfilForm, \
     CambiarUsernameForm, CambiarPasswordForm
-from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto, MeGusta
+from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto, MeGusta, \
+    SolicitudAmistad
 
 
 class IndexView(TemplateView):
@@ -52,6 +52,7 @@ class PaginaInicioUsuarioView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         usuario = self.request.user
+        context['amigos'] = self.request.user.amigos.all()
 
         viajes_creados_activos = Viaje.objects.filter(creador=usuario, estado='ACTIVO')
         viajes_creados_finalizados = Viaje.objects.filter(creador=usuario, estado='FINALIZADO')
@@ -64,6 +65,7 @@ class PaginaInicioUsuarioView(LoginRequiredMixin, TemplateView):
 
         context['notificaciones_sin_leer_count'] = Notificacion.objects.filter(usuario=usuario, leido=False).count()
         context['ultimas_notificaciones'] = Notificacion.objects.filter(usuario=usuario).order_by('-fecha_creacion')[:5]
+        context['solicitudes_pendientes_count'] = (self.request.user.solicitudes_recibidas.filter(aceptada__isnull=True).count())
 
         return context
 
@@ -110,6 +112,7 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         viaje = self.object
+        context['amigos'] = self.request.user.amigos.all()
         deudas = calcular_deudas(self.request, viaje.id)
         deudas_resumen = {}
 
@@ -161,18 +164,77 @@ class EliminarViajeView(LoginRequiredMixin, View):
         return JsonResponse({'success': True})
 
 
+class EnviarSolicitudView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        receptor = get_object_or_404(UsuarioPersonalizado, pk=pk)
+
+        if receptor == request.user:
+            return redirect('viajes:lista_amigos')
+
+        solicitud, creada = SolicitudAmistad.objects.get_or_create(emisor=request.user, receptor=receptor)
+
+        if creada:
+            mensaje = f'{request.user.username} te ha enviado solicitud de amistad.'
+            enlace = reverse('viajes:solicitudes_recibidas')
+            Notificacion.objects.create(usuario=receptor, mensaje=mensaje, tipo='SOLICITUD_AMISTAD', enlace_relacionado=enlace)
+
+        return redirect('viajes:inicio')
+
+class UsuariosDisponiblesView(LoginRequiredMixin, ListView):
+    model = UsuarioPersonalizado
+    template_name = 'viajes/usuarios_disponibles.html'
+    context_object_name = 'usuarios'
+
+    def get_queryset(self):
+        return UsuarioPersonalizado.objects.exclude(pk=self.request.user.pk)
+
+
+class ListaSolicitudesView(LoginRequiredMixin, ListView):
+    template_name = 'viajes/solicitudes_recibidas.html'
+    context_object_name = 'solicitudes'
+
+    def get_queryset(self):
+        return self.request.user.solicitudes_recibidas.filter(aceptada__isnull=True)
+
+
+class ResponderSolicitudView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        solicitud = get_object_or_404(SolicitudAmistad, pk=pk, receptor=request.user)
+        accion = request.POST['accion']
+        solicitud.aceptada = (accion == 'aceptada')
+        solicitud.save()
+
+        if solicitud.aceptada:
+            request.user.amigos.add(solicitud.emisor)
+            mensaje = f"{request.user.username} ha aceptado tu solicitud de amistad."
+            enlace = reverse('viajes:lista_amigos')
+            Notificacion.objects.create(usuario=solicitud.emisor, mensaje=mensaje, tipo='SOLICITUD_ACEPTADA', enlace_relacionado=enlace)
+
+        return redirect('viajes:solicitudes_recibidas')
+
+
+class ListaAmigosView(LoginRequiredMixin, ListView):
+    template_name = 'viajes/lista_amigos.html'
+    context_object_name = 'amigos'
+
+    def get_queryset(self):
+        return self.request.user.amigos.all()
+
 
 class AgregarColaboradorView(LoginRequiredMixin, View):
     def post(self, request, viaje_id):
         try:
             data = json.loads(request.body)
-            username_input = data.get('username', '').strip()
+            usuario_id = data.get('usuario_id')
 
-            if not username_input:
-                return JsonResponse({'success': False, 'error': 'Nombre de usuario no proporcionado'}, status=400)
+            if not usuario_id:
+                return JsonResponse({'success': False, 'error': 'Usuario no seleccionado'}, status=400)
 
             viaje = get_object_or_404(Viaje, id=viaje_id, creador=request.user)
-            usuario = UsuarioPersonalizado.objects.filter(username__iexact=username_input).first()
+            usuario = get_object_or_404(UsuarioPersonalizado, pk=usuario_id)
+
+            if not request.user.amigos.filter(pk=usuario.pk).exists():
+                return JsonResponse({'success': False, 'error': 'Ese usuario no es tu amigo'}, status=400)
 
             if not usuario:
                 return JsonResponse({'success': False, 'error': 'Usuario no encontrado'}, status=404)
