@@ -171,7 +171,12 @@ class EnviarSolicitudView(LoginRequiredMixin, View):
         if receptor == request.user:
             return redirect('viajes:lista_amigos')
 
-        SolicitudAmistad.objects.get_or_create(emisor=request.user, receptor=receptor)
+        solicitud, creada = SolicitudAmistad.objects.get_or_create(emisor=request.user, receptor=receptor)
+
+        if creada:
+            mensaje = f'{request.user.username} te ha enviado solicitud de amistad.'
+            enlace = reverse('viajes:solicitudes_recibidas')
+            Notificacion.objects.create(usuario=receptor, mensaje=mensaje, tipo='SOLICITUD_AMISTAD', enlace_relacionado=enlace)
 
         return redirect('viajes:inicio')
 
@@ -201,6 +206,10 @@ class ResponderSolicitudView(LoginRequiredMixin, View):
 
         if solicitud.aceptada:
             request.user.amigos.add(solicitud.emisor)
+            mensaje = f"{request.user.username} ha aceptado tu solicitud de amistad."
+            enlace = reverse('viajes:lista_amigos')
+            Notificacion.objects.create(usuario=solicitud.emisor, mensaje=mensaje, tipo='SOLICITUD_ACEPTADA', enlace_relacionado=enlace)
+
         return redirect('viajes:solicitudes_recibidas')
 
 

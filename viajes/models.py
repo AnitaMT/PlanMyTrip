@@ -153,6 +153,8 @@ class Notificacion(models.Model):
         ('COMENTARIO', 'Nuevo Comentario'),
         ('COLABORADOR', 'Nuevo Colaborador'),
         ('PAGO', 'Recordatorio de Pago'),
+        ('SOLICITUD_AMISTAD', 'Solicitud de Amistad'),
+        ('SOLICITUD_ACEPTADA', 'Solicitud Aceptada'),
         ('OTROS', 'Otros')
     ]
 

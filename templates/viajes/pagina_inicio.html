@@ -43,7 +43,7 @@
                                     </li>
                                 {% endif %}
                             {% empty %}
-                                {#                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
+                                {#<li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
                             {% endfor %}
                             <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             <li>
@@ -141,12 +141,17 @@
                         <a href="{% url 'viajes:crear_viaje' %}" class="btn btn-primary btn-create">
                             <i class="fas fa-plus me-2"></i>Nuevo Viaje
                         </a>
-                        <a href="{% url 'viajes:usuarios_disponibles' %}" class="btn btn-primary btn-create">
-                            <i class="fas fa-plus me-2"></i>Añadir nuevo amigo
-                        </a>
-                        <a href="{% url 'viajes:lista_amigos' %}" class="btn btn-primary btn-create">
-                            <i class="fas fa-plus me-2"></i>Ver amigos
-                        </a>
+                    </div>
+                    <!-- Barra de gestión de amigos -->
+                    <div class="d-flex justify-content-end mb-4">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'viajes:usuarios_disponibles' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>Añadir amigo
+                            </a>
+                            <a href="{% url 'viajes:lista_amigos' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-users me-2"></i>Mis amigos
+                            </a>
+                        </div>
                     </div>
 
                     <div class="row">
