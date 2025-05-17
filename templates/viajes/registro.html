@@ -1,15 +1,106 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Registro - PlanMyTrip{% endblock %}
-{% block src_css %} {% static 'css/registro.css' %} {% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-primary mb-4">Regístrate</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Registrarse</button>
-    </form>
-   <p class="mt-3">¿Ya tienes cuenta? <a href="{% url 'viajes:login' %}">Inicia sesión aquí</a></p>
-</div>
+<section class="vh-100" style="background-color: #99c3ff;">
+  <div class="container py-4 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col col-xl-10">
+        <div class="card" style="border-radius: 1rem; max-height: 90vh;">
+          <div class="row g-0">
+            <div class="col-md-6 col-lg-5 d-none d-md-block">
+              <img src="{% static 'imagenes/login.png' %}"
+                alt="registro form" class="img-fluid h-100"
+                style="border-radius: 1rem 0 0 1rem; object-fit: cover; object-position: center;"/>
+            </div>
+            <div class="col-md-6 col-lg-7">
+              <div class="card-body p-4 p-lg-4 d-flex flex-column" style="height: 100%;">
+                <div class="d-flex align-items-center mb-4">
+                  <img src="{% static 'imagenes/logo.png' %}" width="90" height="90" alt="logo" class="me-3">
+                  <span class="h2 fw-bold mb-0 text-primary">PlanMyTrip</span>
+                </div>
+
+                <h5 class="fw-normal mb-4" style="letter-spacing: 1px;">Crea tu cuenta</h5>
+
+                {% if messages %}
+                  {% for message in messages %}
+                    {% if 'registro' in message.tags or message.tags == 'error' %}
+                      <div class="alert alert-{{ message.tags }} mb-4">{{ message }}</div>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                  <div class="alert alert-danger mb-4">
+                    {% for error in form.non_field_errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
+                <form method="post" class="flex-grow-1 d-flex flex-column">
+                  {% csrf_token %}
+
+                  <div class="row">
+                    {% for field in form %}
+                    <div class="col-md-6 mb-4">
+                      <div class="form-group">
+                        <label class="form-label fw-bold mb-2">{{ field.label }}</label>
+                        <input type="{% if 'password' in field.name %}password{% else %}text{% endif %}"
+                               id="{{ field.id_for_label }}"
+                               name="{{ field.name }}"
+                               class="form-control form-control-lg"
+                               placeholder="Introduce tu {{ field.label|lower }}"
+                               style="padding: 0.75rem; font-size: 1rem;"
+                               {% if field.field.required %}required{% endif %}>
+                        {% if field.errors %}
+                          <div class="text-danger small mt-2">
+                            {{ field.errors|join:", " }}
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+
+                  <div class="mt-auto pt-2">
+                    <button type="submit" class="btn btn-primary w-100 py-3 mb-3"
+                            style="background: #3f51b5; border: none; font-size: 1.1rem;">
+                      Registrarse
+                    </button>
+
+                    <p class="text-center mb-0" style="color: #393f81;">
+                      ¿Ya tienes una cuenta? <a href="{% url 'viajes:login' %}" style="color: #393f81;">Inicia sesión aquí</a>
+                    </p>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .card {
+    overflow-y: auto;
+  }
+
+  .form-control-lg {
+    height: calc(2.5em + 1rem + 2px);
+  }
+
+  .btn {
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+</style>
 {% endblock %}

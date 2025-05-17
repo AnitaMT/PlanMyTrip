@@ -3,7 +3,7 @@
 {% block title %}PlanMyTrip - Añadir Gasto{% endblock %}
 {% block content %}
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" style="background-color: #f8f9fa;">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
                 <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
@@ -18,28 +18,38 @@
                         <i class="fas fa-bell fs-5"></i>
                         {% if notificaciones_sin_leer_count > 0 %}
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse">
-                            {{ notificaciones_sin_leer_count }}
-                        </span>
+                                {{ notificaciones_sin_leer_count }}
+                            </span>
                         {% endif %}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
                         <li class="dropdown-header">Notificaciones recientes</li>
-                        {% for notificacion in ultimas_notificaciones|slice:":5" %}
-                            <li>
-                                <a class="dropdown-item" href="{{ notificacion.enlace_relacionado }}">
-                                    <div class="notification-content">
-                                        <div class="notification-text">{{ notificacion.mensaje }}</div>
-                                        <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
-                                    </div>
-                                </a>
-                            </li>
+                        {% for notificacion in ultimas_notificaciones %}
+                            {% if notificacion.leido == False %}
+                                <li>
+                                    <a class="dropdown-item d-flex justify-content-between align-items-start"
+                                       href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
+                                        <div>
+                                            <div class="notification-text">{{ notificacion.mensaje }}</div>
+                                            <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
+                                        </div>
+                                        <span class="badge bg-primary">nuevo</span>
+                                    </a>
+                                </li>
+                            {% endif %}
                         {% empty %}
-                            <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>
+                            {#<li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
                         {% endfor %}
+                        <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a href="#" class="dropdown-item text-center text-primary">Ver todas</a></li>
+                        <li>
+                            <a href="{% url 'viajes:notificaciones' %}"
+                               class="dropdown-item text-center text-primary">
+                                Ver todas
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -79,29 +89,152 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <h2>Agregar Gasto</h2>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Guardar</button>
-        </form>
-    </div>
+    <!-- Contenido principal centrado -->
+    <div class="d-flex flex-column min-vh-100">
+        <div class="container my-auto py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-xl-6">
+                    <div class="card shadow-lg rounded-4 overflow-hidden border-0">
+                        <div class="card-header bg-primary text-white py-3">
+                            <h3 class="mb-0 text-center fw-bold">
+                                <i class="fas fa-receipt me-2"></i>Agregar Nuevo Gasto
+                            </h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post" enctype="multipart/form-data" novalidate>
+                                {% csrf_token %}
 
-    <!-- Footer -->
-    <footer class="footer bg-primary text-white py-4 mt-auto">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+                                <!-- Campos del formulario -->
+                                <div class="row g-3">
+                                    {% for field in form %}
+                                        <div class="col-12">
+                                            <label for="{{ field.id_for_label }}" class="form-label fw-medium text-muted">
+                                                {{ field.label }}
+                                                {% if field.field.required %}
+                                                    <span class="text-danger">*</span>
+                                                {% endif %}
+                                            </label>
+                                            {{ field }}
+                                            {% if field.help_text %}
+                                                <div class="form-text small text-muted mt-1">{{ field.help_text }}</div>
+                                            {% endif %}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in field.errors %}
+                                                        <div>{{ error }}</div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Botón -->
+                                <div class="d-flex justify-content-between mt-4 pt-2">
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="fas fa-save me-1"></i> Guardar Gasto
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer py-5" style="background-color: #f8f9fa; color: #495057; border-top: 1px solid #e1e5ee;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="mb-3" style="color: #4692ff;">
+                        <img src="{% static 'imagenes/logo.png' %}" width="40" height="40" alt="logo" class="me-2">
+                        PlanMyTrip
+                    </h5>
+                    <p>La mejor manera de planificar viajes en grupo con tus amigos.</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
+                    <h5 class="mb-3" style="color: #4692ff;">Enlaces</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#funcionalidades" class="text-decoration-none"
+                                            style="color: #495057;">Funcionalidades</a></li>
+                        <li class="mb-2"><a href="#testimonios" class="text-decoration-none" style="color: #495057;">Testimonios</a>
+                        </li>
+                        <li><a href="{% url 'viajes:login' %}" class="text-decoration-none" style="color: #495057;">Iniciar
+                            sesión</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="mb-3" style="color: #4692ff;">Legal</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Términos de
+                            uso</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Política de
+                            privacidad</a></li>
+                        <li><a href="#" class="text-decoration-none" style="color: #495057;">Cookies</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="mb-3" style="color: #4692ff;">Síguenos</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-linkedin-in fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
+            <div class="text-center">
+                <p class="mb-0 small">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
+            </div>
+        </div>
     </footer>
+
+    <style>
+    .min-vh-100 {
+        min-height: 100vh;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .card-header {
+        padding: 1.25rem;
+    }
+
+    .btn {
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background-color: #4692ff;
+        border-color: #4692ff;
+    }
+
+    .btn-primary:hover {
+        background-color: #3a7bd5;
+        border-color: #3a7bd5;
+    }
+
+
+    .invalid-feedback {
+        font-size: 0.85rem;
+        color: #dc3545;
+    }
+
+    .form-text {
+        font-size: 0.8rem;
+    }
+</style>
 {% endblock %}

@@ -4,7 +4,7 @@
 
 {% block content %}
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" style="background-color: #f8f9fa;">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
                 <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
@@ -19,28 +19,38 @@
                         <i class="fas fa-bell fs-5"></i>
                         {% if notificaciones_sin_leer_count > 0 %}
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse">
-                            {{ notificaciones_sin_leer_count }}
-                        </span>
+                                {{ notificaciones_sin_leer_count }}
+                            </span>
                         {% endif %}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
                         <li class="dropdown-header">Notificaciones recientes</li>
-                        {% for notificacion in ultimas_notificaciones|slice:":5" %}
-                            <li>
-                                <a class="dropdown-item" href="{{ notificacion.enlace_relacionado }}">
-                                    <div class="notification-content">
-                                        <div class="notification-text">{{ notificacion.mensaje }}</div>
-                                        <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
-                                    </div>
-                                </a>
-                            </li>
+                        {% for notificacion in ultimas_notificaciones %}
+                            {% if notificacion.leido == False %}
+                                <li>
+                                    <a class="dropdown-item d-flex justify-content-between align-items-start"
+                                       href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
+                                        <div>
+                                            <div class="notification-text">{{ notificacion.mensaje }}</div>
+                                            <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
+                                        </div>
+                                        <span class="badge bg-primary">nuevo</span>
+                                    </a>
+                                </li>
+                            {% endif %}
                         {% empty %}
-                            <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>
+                            {#<li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
                         {% endfor %}
+                        <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a href="#" class="dropdown-item text-center text-primary">Ver todas</a></li>
+                        <li>
+                            <a href="{% url 'viajes:notificaciones' %}"
+                               class="dropdown-item text-center text-primary">
+                                Ver todas
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -51,11 +61,6 @@
                        id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="avatar-container me-2">
                             <img src="
-
-
-
-
-
 
                                     {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                  alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
@@ -86,115 +91,189 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <h2>Gastos del Viaje</h2>
-        <a href="{% url 'viajes:agregar_gasto' viaje.pk %}" class="btn btn-primary mb-3">
-            <i class="fas fa-plus"></i> Nuevo Gasto
-        </a>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-primary"><i class="fas fa-money-check-alt me-2"></i>Gastos del Viaje</h2>
+            <a href="{% url 'viajes:agregar_gasto' viaje.pk %}" class="btn btn-outline-primary rounded-pill">
+                <i class="fas fa-plus me-2"></i>Nuevo Gasto
+            </a>
+        </div>
 
-        <div class="card shadow-sm mb-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">
-                        <i class="fas fa-scale-balanced me-2"></i>Resumen de Deudas
-                    </h5>
+        <!-- Resumen de Deudas -->
+        <div class="card border-0 shadow-sm mb-5">
+            <div class="card-body">
+                <h5 class="card-title text-primary"><i class="fas fa-scale-balanced me-2"></i>Resumen de Deudas</h5>
+                <ul class="list-group list-group-flush">
+                    {% for d in deudas_agrupadas %}
+                        <li class="list-group-item d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                {% with deudor_id=d.deudor %}
+                                    {% for u in viaje.colaboradores.all %}
+                                        {% if u.id == deudor_id %}
+                                            <img src="
 
-                    <ul class="list-group list-group-flush">
-                        {% for d in deudas_agrupadas %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    {# Avatar del deudor #}
-                                    {% with deudor_id=d.deudor %}
-                                        {% for u in viaje.colaboradores.all %}
-                                            {% if u.id == deudor_id %}
-                                                <img
-                                                        src="
-
-
-                                                                {% if u.foto_perfil %}{{ u.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
-                                                        class="rounded-circle me-2" width="30" height="30">
-                                            {% endif %}
-                                        {% endfor %}
-                                        {% if viaje.creador.id == deudor_id %}
-                                            <img
-                                                    src="
-
-
-                                                            {% if viaje.creador.foto_perfil %}{{ viaje.creador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
-                                                    class="rounded-circle me-2" width="30" height="30">
+                                                    {% if u.foto_perfil %}{{ u.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                                 class="rounded-circle me-2" width="35" height="35">
                                         {% endif %}
-                                    {% endwith %}
+                                    {% endfor %}
+                                    {% if viaje.creador.id == deudor_id %}
+                                        <img src="
 
-                                    <div class="d-flex align-items-center">
-                                        <strong class="me-1">{{ d.deudor__username }}</strong>
-                                        <span class="me-1">debe</span>
-                                        <strong class="mx-1">{{ d.total_deuda|floatformat:2 }}€</strong>
-                                        <span class="mx-1">a</span>
-                                        <strong class="ms-1">{{ d.gasto__pagador__username }}</strong>
-                                    </div>
+                                                {% if viaje.creador.foto_perfil %}{{ viaje.creador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                             class="rounded-circle me-2" width="35" height="35">
+                                    {% endif %}
+                                {% endwith %}
+                                <div>
+                                    <span class="fw-semibold">{{ d.deudor__username }}</span>
+                                    <span class="text-muted">debe</span>
+                                    <span class="fw-semibold text-danger">{{ d.total_deuda|floatformat:2 }}€</span>
+                                    <span class="text-muted">a</span>
+                                    <span class="fw-semibold">{{ d.gasto__pagador__username }}</span>
                                 </div>
-                            </li>
-                        {% empty %}
-                            <li class="list-group-item">No hay deudas pendientes.</li>
-                        {% endfor %}
-                    </ul>
-
-                </div>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted text-center">No hay deudas pendientes.</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
 
-        <div class="card shadow-sm">
+        <!-- Historial de Gastos -->
+        <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">Historial de Gastos</h5>
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th>Descripción</th>
-                        <th>Pagador</th>
-                        <th>Cantidad</th>
-                        <th>Fecha</th>
-                        <th>Deudor/es</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for gasto in gastos %}
+                <h5 class="card-title text-primary mb-4"><i class="fas fa-receipt me-2"></i>Historial de Gastos</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
                         <tr>
-                            <td>{{ gasto.descripcion }}</td>
-                            <td>{{ gasto.pagador.username }}</td>
-                            <td>{{ gasto.cantidad }}€</td>
-                            <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
-                            <td>
-                                {% for gasto_id, deudores in gastos_deudores.items %}
-                                    {% if gasto_id == gasto.id %}
-                                        {% if deudores %}
-                                            {{ deudores|join:", " }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
+                            <th>Descripción</th>
+                            <th>Pagador</th>
+                            <th>Cantidad</th>
+                            <th>Fecha</th>
+                            <th>Deudor/es</th>
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {% for gasto in gastos %}
+                            <tr>
+                                <td class="fw-semibold">{{ gasto.descripcion }}</td>
+                                <td>{{ gasto.pagador.username }}</td>
+                                <td><span
+                                        class="badge bg-success-subtle text-success fw-semibold">{{ gasto.cantidad }}€</span>
+                                </td>
+                                <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% for gasto_id, deudores in gastos_deudores.items %}
+                                        {% if gasto_id == gasto.id %}
+                                            {% if deudores %}
+                                                {{ deudores|join:", " }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
+    <div class="d-flex justify-content-center mt-4">
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; Primera</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo; Primera</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Siguiente</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">Última &raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
     <!-- Footer -->
-    <footer class="footer bg-primary text-white py-4 mt-auto">
+    <footer class="footer py-5" style="background-color: #f8f9fa; color: #495057; border-top: 1px solid #e1e5ee;">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="mb-3" style="color: #4692ff;">
+                        <img src="{% static 'imagenes/logo.png' %}" width="40" height="40" alt="logo" class="me-2">
+                        PlanMyTrip
+                    </h5>
+                    <p>La mejor manera de planificar viajes en grupo con tus amigos.</p>
                 </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+                <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
+                    <h5 class="mb-3" style="color: #4692ff;">Enlaces</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#funcionalidades" class="text-decoration-none"
+                                            style="color: #495057;">Funcionalidades</a></li>
+                        <li class="mb-2"><a href="#testimonios" class="text-decoration-none" style="color: #495057;">Testimonios</a>
+                        </li>
+                        <li><a href="{% url 'viajes:login' %}" class="text-decoration-none" style="color: #495057;">Iniciar
+                            sesión</a></li>
+                    </ul>
                 </div>
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="mb-3" style="color: #4692ff;">Legal</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Términos de
+                            uso</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Política de
+                            privacidad</a></li>
+                        <li><a href="#" class="text-decoration-none" style="color: #495057;">Cookies</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="mb-3" style="color: #4692ff;">Síguenos</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-linkedin-in fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
+            <div class="text-center">
+                <p class="mb-0 small">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>

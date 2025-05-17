@@ -3,49 +3,89 @@
 {% block title %}PlanMyTrip - Detalles Viaje{% endblock %}
 {% block src_css %}{% static 'css/detalles_viaje.css' %}{% endblock %}
 {% block style %}
-    .quick-actions {
-    padding: 1rem;
-    background: #f5f5f5;
+    .parallax-map {
+    height: 400px;
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
     border-radius: 8px;
-    margin: 1rem 0;
+    overflow: hidden;
     }
 
-    .quick-actions h5 {
-    color: #333;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #3498db;
+    .map-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
     }
 
-    .action-card {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 1rem;
-    text-align: center;
-    display: block;
-    margin-bottom: 1rem;
-    text-decoration: none;
-    color: #333;
+    /* Diseño de tarjetas */
+    .info-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s;
+    height: 100%;
     }
 
-    .action-card:hover {
-    background: #f8f8f8;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    .info-card:hover {
+    transform: translateY(-5px);
     }
 
-    .action-icon {
-    font-size: 1.5rem;
-    color: #3498db;
-    margin-bottom: 0.5rem;
+    .card-header-custom {
+    background: linear-gradient(135deg, #3f51b5 0%, #2196F3 100%);
+    color: white;
+    border-radius: 10px 10px 0 0 !important;
     }
 
-    .action-card h6 {
-    font-weight: 600;
-    margin: 0;
-    font-size: 0.9rem;
+    /* Diseño de pestañas */
+    .nav-tabs .nav-link {
+    border: none;
+    color: #495057;
+    font-weight: 500;
     }
+
+    .nav-tabs .nav-link.active {
+    color: #3f51b5;
+    border-bottom: 3px solid #3f51b5;
+    background: transparent;
+    }
+
+    /* Diseño de actividades */
+    .activity-item {
+    border-left: 3px solid #3f51b5;
+    transition: all 0.3s;
+    }
+
+    .activity-item:hover {
+    background-color: #f8f9fa;
+    }
+
+    /* Quick actions mejoradas */
+    .quick-action {
+    transition: all 0.3s;
+    border-radius: 8px;
+    }
+
+    .quick-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    /* Badges personalizados */
+    .priority-badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -56,7 +96,8 @@
         {% endif %}
 
         <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top"
+             style="background-color: #f8f9fa;">
             <div class="container-fluid">
                 <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
                     <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
@@ -71,28 +112,38 @@
                             <i class="fas fa-bell fs-5"></i>
                             {% if notificaciones_sin_leer_count > 0 %}
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse">
-                            {{ notificaciones_sin_leer_count }}
-                        </span>
+                                {{ notificaciones_sin_leer_count }}
+                            </span>
                             {% endif %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
                             <li class="dropdown-header">Notificaciones recientes</li>
-                            {% for notificacion in ultimas_notificaciones|slice:":5" %}
-                                <li>
-                                    <a class="dropdown-item" href="{{ notificacion.enlace_relacionado }}">
-                                        <div class="notification-content">
-                                            <div class="notification-text">{{ notificacion.mensaje }}</div>
-                                            <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
-                                        </div>
-                                    </a>
-                                </li>
+                            {% for notificacion in ultimas_notificaciones %}
+                                {% if notificacion.leido == False %}
+                                    <li>
+                                        <a class="dropdown-item d-flex justify-content-between align-items-start"
+                                           href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
+                                            <div>
+                                                <div class="notification-text">{{ notificacion.mensaje }}</div>
+                                                <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
+                                            </div>
+                                            <span class="badge bg-primary">nuevo</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
                             {% empty %}
-                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>
+                                {#<li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
                             {% endfor %}
+                            <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a href="#" class="dropdown-item text-center text-primary">Ver todas</a></li>
+                            <li>
+                                <a href="{% url 'viajes:notificaciones' %}"
+                                   class="dropdown-item text-center text-primary">
+                                    Ver todas
+                                </a>
+                            </li>
                         </ul>
                     </div>
 
@@ -103,6 +154,12 @@
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="avatar-container me-2">
                                 <img src="
+
+
+
+
+
+
                                         {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                      alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
                             </div>
@@ -133,232 +190,318 @@
         </nav>
 
         <!-- Quick Actions -->
-        <div class="quick-actions mb-5">
-            <h5 class="mb-3">Acciones rápidas</h5>
-            <div class="row g-3">
-                <div class="col-md-2 col-4">
-                    <a href="{% url 'viajes:crear_viaje' %}" class="action-card text-center p-3 rounded-3 d-block">
-                        <div class="action-icon mb-2">
-                            <i class="fas fa-plus-circle"></i>
-                        </div>
-                        <h6>Nuevo Viaje</h6>
-                    </a>
-                </div>
-                <div class="col-md-2 col-4">
-                    <a href="#" class="action-card text-center p-3 rounded-3 d-block" data-bs-toggle="modal"
-                       data-bs-target="#agregarColaboradorModal">
-                        <div class="action-icon mb-2">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <h6>Invitar Amigos</h6>
-                    </a>
-                </div>
-                <div class="col-md-2 col-4">
-                    <a href="#" class="action-card text-center p-3 rounded-3 d-block">
-                        <div class="action-icon mb-2">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </div>
-                        <h6>Presupuestos</h6>
-                    </a>
-                </div>
-                <div class="col-md-2 col-4">
-                    <a href="#" class="action-card text-center p-3 rounded-3 d-block" data-bs-toggle="modal"
-                       data-bs-target="#agregarPagoModal">
-                        <div class="action-icon mb-2">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                        <h6>Agregar Pago</h6>
-                    </a>
-                </div>
-                <div class="col-md-2 col-4">
-                    <a href="#" class="action-card text-center p-3 rounded-3 d-block" data-bs-toggle="modal"
-                       data-bs-target="#deudasModal">
-                        <div class="action-icon mb-2">
-                            <i class="fas fa-balance-scale"></i>
-                        </div>
-                        <h6>Deudas</h6>
-                    </a>
-                </div>
-                <div class="col-md-2 col-4">
-                    <a href="{% url 'viajes:inicio' %}" class="action-card text-center p-3 rounded-3 d-block">
-                        <div class="action-icon mb-2">
-                            <i class="fas fa-cog"></i>
-                        </div>
-                        <h6>Ajustes</h6>
-                    </a>
+        <div class="container-fluid py-3 bg-light">
+            <div class="container">
+                <div class="row g-3">
+                    <div class="col-md-2 col-6">
+                        <a href="{% url 'viajes:crear_viaje' %}"
+                           class="quick-action card text-center p-3 bg-white text-decoration-none">
+                            <div class="text-primary mb-2">
+                                <i class="fas fa-plus-circle fa-2x"></i>
+                            </div>
+                            <h6 class="mb-0 small fw-bold">Nuevo Viaje</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none"
+                           data-bs-toggle="modal"
+                           data-bs-target="#agregarColaboradorModal">
+                            <div class="text-primary mb-2">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                            <h6 class="mb-0 small fw-bold">Invitar Amigos</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none">
+                            <div class="text-primary mb-2">
+                                <i class="fas fa-file-invoice-dollar fa-2x"></i>
+                            </div>
+                            <h6 class="mb-0 small fw-bold">Presupuestos</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none"
+                           data-bs-toggle="modal"
+                           data-bs-target="#agregarPagoModal">
+                            <div class="text-primary mb-2">
+                                <i class="fas fa-money-bill-wave fa-2x"></i>
+                            </div>
+                            <h6 class="mb-0 small fw-bold">Agregar Pago</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none"
+                           data-bs-toggle="modal"
+                           data-bs-target="#deudasModal">
+                            <div class="text-primary mb-2">
+                                <i class="fas fa-balance-scale fa-2x"></i>
+                            </div>
+                            <h6 class="mb-0 small fw-bold">Deudas</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="{% url 'viajes:inicio' %}"
+                           class="quick-action card text-center p-3 bg-white text-decoration-none">
+                            <div class="text-primary mb-2">
+                                <i class="fas fa-cog fa-2x"></i>
+                            </div>
+                            <h6 class="mb-0 small fw-bold">Ajustes</h6>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <main class="flex-grow-1">
-            <div class="container mt-5">
+        <main class="flex-grow-1 py-4">
+            <div class="container">
+                <!-- Encabezado del viaje -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0">{{ viaje.nombre }}</h2>
-                    <span class="badge bg-{% if viaje.estado == 'ACTIVO' %}success{% else %}secondary{% endif %}">
+                    <div>
+                        <h1 class="mb-1">{{ viaje.nombre }}</h1>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-calendar-alt text-muted me-2"></i>
+                            <span class="text-muted">
+                            {{ viaje.fecha_inicio|date:"d/m/Y" }} - {{ viaje.fecha_fin|date:"d/m/Y" }}
+                        </span>
+                        </div>
+                    </div>
+                    <span class="badge bg-{% if viaje.estado == 'ACTIVO' %}success{% else %}secondary{% endif %} py-2 px-3">
                     {{ viaje.get_estado_display }}
                 </span>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title text-primary">
-                                    <i class="fas fa-info-circle me-2"></i>Información del Viaje
-                                </h5>
-                                <div class="viaje-info">
-                                    <p><strong><i
-                                            class="fas fa-map-marker-alt me-2"></i>Destino:</strong> {{ viaje.destino.nombre }}, {{ viaje.destino.pais }}
-                                    </p>
-                                    <p><strong><i class="fas fa-calendar-day me-2"></i>Fecha
-                                        inicio:</strong> {{ viaje.fecha_inicio|date:"d/m/Y" }}</p>
-                                    <p><strong><i class="fas fa-calendar-check me-2"></i>Fecha
-                                        fin:</strong> {{ viaje.fecha_fin|date:"d/m/Y" }}</p>
-                                    {% if viaje.presupuesto_total %}
-                                        <p><strong><i
-                                                class="fas fa-money-bill-wave me-2"></i>Presupuesto:</strong> {{ viaje.presupuesto_total }}
-                                            €</p>
-                                    {% endif %}
-                                    <h5><i class="fas fa-map me-2"></i>Ubicación en el mapa</h5>
-                                    <div id="map" style="height: 400px;" class="rounded-4"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Pestañas principales -->
+                <ul class="nav nav-tabs mb-4" id="viajeTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab"
+                                data-bs-target="#overview" type="button" role="tab">
+                            <i class="fas fa-info-circle me-2"></i>Resumen
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="activities-tab" data-bs-toggle="tab" data-bs-target="#activities"
+                                type="button" role="tab">
+                            <i class="fas fa-list-check me-2"></i>Actividades
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="expenses-tab" data-bs-toggle="tab" data-bs-target="#expenses"
+                                type="button" role="tab">
+                            <i class="fas fa-money-bill-wave me-2"></i>Gastos
+                        </button>
+                    </li>
+                </ul>
 
-                    <div class="col-md-6">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title text-primary">
-                                    <i class="fas fa-users me-2"></i>Participantes
-                                </h5>
-                                <div class="participantes">
-                                    <p><strong>Creador:</strong> {{ viaje.creador.username }}</p>
-                                    {% if viaje.colaboradores.all %}
-                                        <p><strong>Colaboradores:</strong></p>
-                                        <ul class="list-unstyled">
-                                            {% for colaborador in viaje.colaboradores.all %}
-                                                <li><i class="fas fa-user-friends me-2"></i>{{ colaborador.username }}
-                                                    {% if es_creador %}
-                                                        <a href="#" class="text-danger ms-2 eliminar-colaborador"
-                                                           data-id="{{ colaborador.id }}" data-tipo="colaborador"
-                                                           data-viaje-id="{{ viaje.id }}">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </a>
-                                                    {% endif %}
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% else %}
-                                        <p class="text-muted">No hay colaboradores añadidos</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title text-primary"><i class="fas fa-face-grin-beam me-2"></i>Actividades
-                                </h5>
-                                {% if viaje.actividades.all %}
-                                    <ul class="list-unstyled">
-                                        {% for actividad in viaje.actividades.all %}
-                                            <li class="d-flex align-items-center mb-2">
-                                                <i class="fas fa-users me-2"></i>
-                                                <a href="{% url 'viajes:detalles_actividad' actividad.pk %}"
-                                                   class="me-auto text-decoration-none text-dark">
-                                                    {{ actividad.titulo }}
-                                                </a>
-                                                <!-- Botón Like -->
-                                                <a href="#" class="like-btn me-2" data-id="{{ actividad.pk }}">
-                                                    <i class="{% if actividad.pk in liked_actividades %}fa-solid fa-heart{% else %}fa-regular fa-heart{% endif %}"
-                                                       style="font-size:1.1rem; color: {% if actividad.pk in liked_actividades %}red{% else %}inherit{% endif %};"></i>
-                                                </a>
-                                                <!-- Contador -->
-                                                <a href="#" class="likes-count badge bg-light text-dark"
-                                                   data-id="{{ actividad.pk }}"
-                                                   data-bs-toggle="modal"
-                                                   data-bs-target="#likesModal">
-                                                    {{ actividad.me_gustas.count }}
-                                                </a>
-                                                <a href="{% url 'viajes:editar_actividad' actividad.pk %}">
-                                                    <i class="fas fa-edit me-2"></i>
-                                                </a>
-                                                <a href="#" class="eliminar-actividad text-danger"
-                                                   data-id="{{ actividad.pk }}" data-tipo="actividad">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </a>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    <p class="text-muted">No hay actividades</p>
-                                {% endif %}
-                                <a href="{% url 'viajes:agregar_actividad' viaje.pk %}" class="btn btn-primary">
-                                    <i class="fas fa-plus-circle"></i> Añadir actividad
-                                </a>
-                                {% if viaje.actividades.all %}
-                                    <button id="generarItinerarioBtn" class="btn btn-primary">
-                                        <i class="fas fa-calendar-check"></i> Generar itinerario
-                                    </button>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title text-primary"><i class="fas fa-wand-magic-sparkles me-2"></i>Sugerencias
-                                </h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mt-4">
-                    <div class="col-md-4">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title text-primary">
-                                    <i class="fas fa-scale-balanced me-2"></i>Resumen de Deudas
-                                </h5>
-
-                                {% if deudas %}
-                                    <ul class="list-group list-group-flush">
-                                        {% for username, cantidad in deudas.items %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <img src="
-                                                            {% if usuario.foto_perfil %}{{ usuario.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
-                                                         class="rounded-circle me-2" width="30" height="30">
-                                                    <span>{{ username }}</span>
-                                                </div>
-                                                <span class="badge bg-danger rounded-pill">{{ cantidad }}€</span>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                    <div class="mt-3 d-flex flex-wrap gap-2">
-                                        <a href="{% url 'viajes:lista_gastos' viaje.pk %}"
-                                           class="btn btn-secondary">
-                                            <i class="fas fa-list"></i> Ver deudas y gastos
-                                        </a>
-                                        <button class="btn btn-primary" data-bs-toggle="modal"
-                                                data-bs-target="#agregarPagoModal">
-                                            <i class="fas fa-money-bill-wave"></i> Agregar Pago
-                                        </button>
+                <div class="tab-content" id="viajeTabsContent">
+                    <!-- Pestaña de Resumen -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                        <div class="row">
+                            <!-- Información del viaje -->
+                            <div class="col-lg-6 mb-4">
+                                <div class="info-card card h-100">
+                                    <div class="card-header card-header-custom">
+                                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Viaje
+                                        </h5>
                                     </div>
-                                {% else %}
-                                    <div class="alert alert-success">
-                                        <i class="fas fa-check-circle me-2"></i>No hay pagos por realizar.
-                                        <div class="mt-3 d-flex flex-wrap gap-2">
-                                            <button class="btn btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#agregarPagoModal">
-                                                <i class="fas fa-money-bill-wave"></i> Agregar Pago
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <h6><i class="fas fa-map-marker-alt text-primary me-2"></i>Destino</h6>
+                                            <p>{{ viaje.destino.nombre }}, {{ viaje.destino.pais }}</p>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <h6><i class="fas fa-calendar-day text-primary me-2"></i>Fechas</h6>
+                                            <p>
+                                                <span class="fw-bold">Inicio:</span> {{ viaje.fecha_inicio|date:"d/m/Y" }}<br>
+                                                <span class="fw-bold">Fin:</span> {{ viaje.fecha_fin|date:"d/m/Y" }}
+                                            </p>
+                                        </div>
+
+                                        {% if viaje.presupuesto_total %}
+                                            <div class="mb-3">
+                                                <h6><i class="fas fa-money-bill-wave text-primary me-2"></i>Presupuesto
+                                                </h6>
+                                                <p>{{ viaje.presupuesto_total }} €</p>
+                                            </div>
+                                        {% endif %}
+
+                                        <!-- Mapa -->
+                                        <div class="mt-4">
+                                            <h6><i class="fas fa-map text-primary me-2"></i>Ubicación</h6>
+                                            <div class="parallax-map" id="map">
+                                                <div class="map-overlay">
+                                                    <h4 class="mb-0">{{ viaje.destino.nombre }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Participantes y actividades recientes -->
+                            <div class="col-lg-6">
+                                <div class="info-card card h-100 mb-4">
+                                    <div class="card-header card-header-custom">
+                                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Participantes</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-4">
+                                            <h6><i class="fas fa-crown text-warning me-2"></i>Creador</h6>
+                                            <div class="d-flex align-items-center mb-3">
+                                                <img src="
+
+
+
+
+
+                                                        {% if viaje.creador.foto_perfil %}{{ viaje.creador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                                     class="rounded-circle me-3" width="40" height="40">
+                                                <span>{{ viaje.creador.username }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h6><i class="fas fa-user-friends text-primary me-2"></i>Colaboradores</h6>
+                                            {% if viaje.colaboradores.all %}
+                                                <div class="row">
+                                                    {% for colaborador in viaje.colaboradores.all %}
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="d-flex align-items-center">
+                                                                <img src="
+
+
+
+
+
+
+                                                                        {% if colaborador.foto_perfil %}{{ colaborador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                                                     class="rounded-circle me-3" width="40" height="40">
+                                                                <div>
+                                                                    <div>{{ colaborador.username }}</div>
+                                                                    {% if es_creador %}
+                                                                        <a href="#"
+                                                                           class="text-danger small eliminar-colaborador"
+                                                                           data-id="{{ colaborador.id }}"
+                                                                           data-tipo="colaborador"
+                                                                           data-viaje-id="{{ viaje.id }}">
+                                                                            <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                                                        </a>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted">No hay colaboradores añadidos</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña de Actividades -->
+                    <div class="tab-pane fade" id="activities" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="info-card card mb-4">
+                                    <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Actividades Planificadas
+                                        </h5>
+                                        <a href="{% url 'viajes:agregar_actividad' viaje.pk %}"
+                                           class="btn btn-light btn-sm">
+                                            <i class="fas fa-plus me-1"></i> Añadir
+                                        </a>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if viaje.actividades.all %}
+                                            <div class="list-group list-group-flush">
+                                                {% for actividad in viaje.actividades.all %}
+                                                    <div class="list-group-item activity-item mb-2">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="flex-grow-1">
+                                                                <div class="d-flex align-items-center mb-1">
+                                                                    <a href="{% url 'viajes:detalles_actividad' actividad.pk %}"
+                                                                       class="fw-bold text-decoration-none me-2">
+                                                                        {{ actividad.titulo }}
+                                                                    </a>
+                                                                    <span class="badge priority-badge {% if actividad.prioridad == 'ALTA' %}bg-danger{% elif actividad.prioridad == 'MEDIA' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                                                {{ actividad.get_prioridad_display }}
+                                                            </span>
+                                                                </div>
+                                                                <div class="d-flex align-items-center text-muted small">
+                                                                    <i class="fas fa-calendar-alt me-1"></i>
+                                                                    <span class="me-3">{{ actividad.fecha_hora|date:"d/m/Y H:i" }}</span>
+                                                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                                                    <span>{{ actividad.ubicacion|default:"Sin ubicación" }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex">
+                                                                <!-- Botón Like -->
+                                                                <a href="#" class="like-btn me-2"
+                                                                   data-id="{{ actividad.pk }}">
+                                                                    <i class="{% if actividad.pk in liked_actividades %}fa-solid fa-heart{% else %}fa-regular fa-heart{% endif %}"
+                                                                       style="font-size:1.1rem; color: {% if actividad.pk in liked_actividades %}red{% else %}inherit{% endif %};"></i>
+                                                                </a>
+                                                                <!-- Contador -->
+                                                                <a href="#"
+                                                                   class="likes-count badge bg-light text-dark me-2"
+                                                                   data-id="{{ actividad.pk }}"
+                                                                   data-bs-toggle="modal"
+                                                                   data-bs-target="#likesModal">
+                                                                    {{ actividad.me_gustas.count }}
+                                                                </a>
+                                                                <a href="{% url 'viajes:editar_actividad' actividad.pk %}"
+                                                                   class="btn btn-sm btn-outline-primary me-2">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </a>
+                                                                <a href="#"
+                                                                   class="btn btn-sm btn-outline-danger eliminar-actividad"
+                                                                   data-id="{{ actividad.pk }}" data-tipo="actividad">
+                                                                    <i class="fas fa-trash-alt"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="text-center py-4">
+                                                <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
+                                                <h5 class="text-muted">No hay actividades planificadas</h5>
+                                                <a href="{% url 'viajes:agregar_actividad' viaje.pk %}"
+                                                   class="btn btn-primary mt-3">
+                                                    <i class="fas fa-plus-circle me-1"></i> Crear primera actividad
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="info-card card mb-4">
+                                    <div class="card-header card-header-custom">
+                                        <h5 class="mb-0"><i class="fas fa-wand-magic-sparkles me-2"></i>Sugerencias</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted">Próximamente: sugerencias de actividades basadas en tu
+                                            destino.</p>
+                                    </div>
+                                </div>
+
+                                {% if viaje.actividades.all %}
+                                    <div class="info-card card">
+                                        <div class="card-header card-header-custom">
+                                            <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Generar
+                                                Itinerario</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <button id="generarItinerarioBtn" class="btn btn-primary w-100">
+                                                <i class="fas fa-file-pdf me-1"></i> Descargar PDF
                                             </button>
                                         </div>
                                     </div>
@@ -366,256 +509,423 @@
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Pestaña de Gastos -->
+                    <div class="tab-pane fade" id="expenses" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="info-card card mb-4">
+                                    <div class="card-header card-header-custom">
+                                        <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Resumen de Gastos
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if deudas %}
+                                            <div class="table-responsive">
+                                                <table class="table">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>Participante</th>
+                                                        <th class="text-end">Deuda</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for username, cantidad in deudas.items %}
+                                                        <tr>
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    <img src="
 
 
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                    <a href="{% url 'viajes:inicio' %}" class="btn btn-outline-primary me-md-2">
-                        <i class="fas fa-arrow-left me-2"></i>Volver al inicio
-                    </a>
-                    <a href="{% url 'viajes:editar_viaje' viaje.pk %}" class="btn btn-primary">
-                        <i class="fas fa-edit me-2"></i>Editar viaje
-                    </a>
-                </div>
-            </div>
 
-            <!-- Footer -->
-            <footer class="footer bg-primary text-white py-4 mt-auto">
-                <div class="container">
-                    <div class="row align-items-center">
-                        <div class="col-md-6 text-center text-md-start">
-                            <p class="mb-0">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
-                        </div>
-                        <div class="col-md-6 text-center text-md-end">
-                            <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </footer>
 
-            <!-- Modal para agregar colaboradores -->
-            <div class="modal fade" id="agregarColaboradorModal" tabindex="-1"
-                 aria-labelledby="agregarColaboradorModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="agregarColaboradorModalLabel">Agregar Colaborador</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="agregarColaboradorForm">
-                                {% csrf_token %}
-                                <div class="mb-3">
-                                    <label for="usuario_id" class="form-label">Añade un colaborador</label>
-                                    <select class="form-select" id="usuario_id" name="usuario_id" required>
-                                        <option selected disabled value="">-- Selecciona un amigo --</option>
-                                        {% for amigo in amigos %}
-                                            <option value="{{ amigo.id }}">{{ amigo.username }}</option>
-                                        {% empty %}
-                                            <option disabled>No tienes amigos aún</option>
-                                        {% endfor %}
-                                    </select>
-                                    <div class="invalid-feedback" id="username-error"></div>
+
+
+                                                                            {% if usuario.foto_perfil %}{{ usuario.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                                                         class="rounded-circle me-2" width="30"
+                                                                         height="30">
+                                                                    <span>{{ username }}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-end fw-bold text-danger">{{ cantidad }}€</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between mt-4">
+                                                <a href="{% url 'viajes:lista_gastos' viaje.pk %}"
+                                                   class="btn btn-outline-secondary">
+                                                    <i class="fas fa-list me-1"></i> Ver todos los gastos
+                                                </a>
+                                                <button class="btn btn-primary" data-bs-toggle="modal"
+                                                        data-bs-target="#agregarPagoModal">
+                                                    <i class="fas fa-money-bill-wave me-1"></i> Agregar Pago
+                                                </button>
+                                            </div>
+                                        {% else %}
+                                            <div class="text-center py-4">
+                                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                                <h5 class="text-success">No hay deudas pendientes</h5>
+                                                <p class="text-muted">Todos los gastos están equilibrados entre los
+                                                    participantes.</p>
+                                                <button class="btn btn-primary mt-3" data-bs-toggle="modal"
+                                                        data-bs-target="#agregarPagoModal">
+                                                    <i class="fas fa-money-bill-wave me-1"></i> Registrar nuevo gasto
+                                                </button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary" id="agregarColaboradorBtn">Agregar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            </div>
 
+                            <div class="col-md-4">
+                                <div class="info-card card">
+                                    <div class="card-header card-header-custom">
+                                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Estadísticas</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if viaje.presupuesto_total %}
+                                            <div class="mb-4">
+                                                <h6>Presupuesto restante</h6>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar bg-success" role="progressbar"
+                                                         style="width: 75%;"
+                                                         aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                                                        75%
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">1,250€ de 1,500€ restantes</small>
+                                            </div>
+                                        {% endif %}
 
-            <!--Modal para mensaje de confirmación al eliminar actividad o colaborador -->
-            <div class="modal fade" id="confirmarEliminarModal" tabindex="-1"
-                 aria-labelledby="confirmarEliminarModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="confirmarEliminarModalLabel">Confirmar eliminación</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                    aria-label="Cerrar"></button>
-                        </div>
-                        <div class="modal-body" id="modal-body-text">
-
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" id="btnConfirmarEliminar" class="btn btn-danger">Eliminar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal para Agregar Pago -->
-            <div class="modal fade" id="agregarPagoModal" tabindex="-1" aria-labelledby="agregarPagoModalLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="agregarPagoModalLabel">Agregar Gasto</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="agregarPagoForm" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="cantidad" class="form-label">Cantidad (€)</label>
-                                            <input type="number" step="0.01" class="form-control" id="cantidad"
-                                                   name="cantidad" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="descripcion" class="form-label">Descripción</label>
-                                            <input type="text" class="form-control" id="descripcion" name="descripcion"
-                                                   required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="categoria" class="form-label">Categoría</label>
-                                            <select class="form-select" id="categoria" name="categoria" required>
-                                                <option value="">Selecciona una categoría</option>
-                                                <option value="ALOJAMIENTO">Alojamiento</option>
-                                                <option value="COMIDA">Comida</option>
-                                                <option value="TRANSPORTE">Transporte</option>
-                                                <option value="ACTIVIDADES">Actividades</option>
-                                                <option value="OTROS" selected>Otros</option>
-                                            </select>
+                                        <div>
+                                            <h6>Gastos por categoría</h6>
+                                            <div class="text-center py-3">
+                                                <i class="fas fa-chart-pie fa-3x text-muted"></i>
+                                                <p class="text-muted mt-2">Próximamente: gráfico de gastos por
+                                                    categoría</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="comprobante" class="form-label">Comprobante (opcional)</label>
-                                            <input type="file" class="form-control" id="comprobante" name="comprobante"
-                                                   accept="image/*">
-                                            <small class="text-muted">Sube una foto del ticket o factura.</small>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">¿Con quién compartes este gasto?</label>
-                                            <div class="border p-2 rounded">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'viajes:inicio' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al inicio
+                    </a>
+                    <div>
+                        <a href="{% url 'viajes:editar_viaje' viaje.pk %}" class="btn btn-primary me-2">
+                            <i class="fas fa-edit me-1"></i> Editar viaje
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer py-5"
+                style="background-color: #f8f9fa; color: #495057; border-top: 1px solid #e1e5ee;">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 mb-4 mb-lg-0">
+                        <h5 class="mb-3" style="color: #4692ff;">
+                            <img src="{% static 'imagenes/logo.png' %}" width="40" height="40" alt="logo"
+                                 class="me-2">
+                            PlanMyTrip
+                        </h5>
+                        <p>La mejor manera de planificar viajes en grupo con tus amigos.</p>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
+                        <h5 class="mb-3" style="color: #4692ff;">Enlaces</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#funcionalidades" class="text-decoration-none"
+                                                style="color: #495057;">Funcionalidades</a></li>
+                            <li class="mb-2"><a href="#testimonios" class="text-decoration-none"
+                                                style="color: #495057;">Testimonios</a>
+                            </li>
+                            <li><a href="{% url 'viajes:login' %}" class="text-decoration-none"
+                                   style="color: #495057;">Iniciar
+                                sesión</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                        <h5 class="mb-3" style="color: #4692ff;">Legal</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Términos
+                                de
+                                uso</a></li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Política
+                                de
+                                privacidad</a></li>
+                            <li><a href="#" class="text-decoration-none" style="color: #495057;">Cookies</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <h5 class="mb-3" style="color: #4692ff;">Síguenos</h5>
+                        <div class="d-flex gap-3">
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-facebook-f fa-lg"></i></a>
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-twitter fa-lg"></i></a>
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-instagram fa-lg"></i></a>
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-linkedin-in fa-lg"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
+                <div class="text-center">
+                    <p class="mb-0 small">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Modal para agregar colaboradores -->
+        <div class="modal fade" id="agregarColaboradorModal" tabindex="-1"
+             aria-labelledby="agregarColaboradorModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="agregarColaboradorModalLabel">Agregar Colaborador</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="agregarColaboradorForm">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="usuario_id" class="form-label">Añade un colaborador</label>
+                                <select class="form-select" id="usuario_id" name="usuario_id" required>
+                                    <option selected disabled value="">-- Selecciona un amigo --</option>
+                                    {% for amigo in amigos %}
+                                        <option value="{{ amigo.id }}">{{ amigo.username }}</option>
+                                    {% empty %}
+                                        <option disabled>No tienes amigos aún</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback" id="username-error"></div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="agregarColaboradorBtn">Agregar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!--Modal para mensaje de confirmación al eliminar actividad o colaborador -->
+        <div class="modal fade" id="confirmarEliminarModal" tabindex="-1"
+             aria-labelledby="confirmarEliminarModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="confirmarEliminarModalLabel">Confirmar eliminación</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body" id="modal-body-text">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" id="btnConfirmarEliminar" class="btn btn-danger">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Agregar Pago -->
+        <div class="modal fade" id="agregarPagoModal" tabindex="-1" aria-labelledby="agregarPagoModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="agregarPagoModalLabel">Agregar Gasto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="agregarPagoForm" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="cantidad" class="form-label">Cantidad (€)</label>
+                                        <input type="number" step="0.01" class="form-control" id="cantidad"
+                                               name="cantidad" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="descripcion" class="form-label">Descripción</label>
+                                        <input type="text" class="form-control" id="descripcion" name="descripcion"
+                                               required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="categoria" class="form-label">Categoría</label>
+                                        <select class="form-select" id="categoria" name="categoria" required>
+                                            <option value="">Selecciona una categoría</option>
+                                            <option value="ALOJAMIENTO">Alojamiento</option>
+                                            <option value="COMIDA">Comida</option>
+                                            <option value="TRANSPORTE">Transporte</option>
+                                            <option value="ACTIVIDADES">Actividades</option>
+                                            <option value="OTROS" selected>Otros</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="comprobante" class="form-label">Comprobante (opcional)</label>
+                                        <input type="file" class="form-control" id="comprobante" name="comprobante"
+                                               accept="image/*">
+                                        <small class="text-muted">Sube una foto del ticket o factura.</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">¿Con quién compartes este gasto?</label>
+                                        <div class="border p-2 rounded">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="participantes" value="{{ viaje.creador.id }}"
+                                                       id="participante_creador" checked>
+                                                <label class="form-check-label" for="participante_creador">
+                                                    {{ viaje.creador.username }} (Tú)
+                                                </label>
+                                            </div>
+                                            {% for colaborador in viaje.colaboradores.all %}
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="checkbox"
-                                                           name="participantes" value="{{ viaje.creador.id }}"
-                                                           id="participante_creador" checked>
-                                                    <label class="form-check-label" for="participante_creador">
-                                                        {{ viaje.creador.username }} (Tú)
+                                                           name="participantes" value="{{ colaborador.id }}"
+                                                           id="participante_{{ colaborador.id }}" checked>
+                                                    <label class="form-check-label"
+                                                           for="participante_{{ colaborador.id }}">
+                                                        {{ colaborador.username }}
                                                     </label>
                                                 </div>
-                                                {% for colaborador in viaje.colaboradores.all %}
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox"
-                                                               name="participantes" value="{{ colaborador.id }}"
-                                                               id="participante_{{ colaborador.id }}" checked>
-                                                        <label class="form-check-label"
-                                                               for="participante_{{ colaborador.id }}">
-                                                            {{ colaborador.username }}
-                                                        </label>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                            <small class="text-muted">Desmarca a quienes no participen en este
-                                                gasto.</small>
+                                            {% endfor %}
                                         </div>
+                                        <small class="text-muted">Desmarca a quienes no participen en este
+                                            gasto.</small>
                                     </div>
                                 </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary" id="agregarPagoBtn">
-                                <i class="fas fa-save me-1"></i> Registrar Gasto
-                            </button>
-                        </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="agregarPagoBtn">
+                            <i class="fas fa-save me-1"></i> Registrar Gasto
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
 
 
-            <!-- Modal para Ver Deudas Agrupadas -->
-            <div class="modal fade" id="deudasModal" tabindex="-1" aria-labelledby="deudasModalLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="deudasModalLabel">Resumen de Deudas</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Cerrar"></button>
-                        </div>
-                        <div class="modal-body">
-                            {% if deudas_agrupadas %}
-                                <ul class="list-group list-group-flush">
-                                    {% for d in deudas_agrupadas %}
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div class="d-flex align-items-center">
-                                                {% with deudor_id=d.deudor %}
-                                                    {% for u in viaje.colaboradores.all %}
-                                                        {% if u.id == deudor_id %}
-                                                            <img src="
-                                                                    {% if u.foto_perfil %}{{ u.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
-                                                                 class="rounded-circle me-2" width="30" height="30">
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                    {% if viaje.creador.id == deudor_id %}
+        <!-- Modal para Ver Deudas Agrupadas -->
+        <div class="modal fade" id="deudasModal" tabindex="-1" aria-labelledby="deudasModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deudasModalLabel">Resumen de Deudas</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% if deudas_agrupadas %}
+                            <ul class="list-group list-group-flush">
+                                {% for d in deudas_agrupadas %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            {% with deudor_id=d.deudor %}
+                                                {% for u in viaje.colaboradores.all %}
+                                                    {% if u.id == deudor_id %}
                                                         <img src="
-                                                                {% if viaje.creador.foto_perfil %}{{ viaje.creador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+
+
+
+
+
+
+
+
+
+                                                                {% if u.foto_perfil %}{{ u.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                              class="rounded-circle me-2" width="30" height="30">
                                                     {% endif %}
-                                                {% endwith %}
-                                                <span>
+                                                {% endfor %}
+                                                {% if viaje.creador.id == deudor_id %}
+                                                    <img src="
+
+
+
+
+
+
+
+
+
+                                                            {% if viaje.creador.foto_perfil %}{{ viaje.creador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                                         class="rounded-circle me-2" width="30" height="30">
+                                                {% endif %}
+                                            {% endwith %}
+                                            <span>
                                                     <strong>{{ d.deudor__username }}</strong>
                                                     debe
                                                     <strong>{{ d.total_deuda|floatformat:2 }}€</strong>
                                                     a
                                                     <strong>{{ d.gasto__pagador__username }}</strong>
                                                 </span>
-                                            </div>
-                                            <span class="badge bg-danger rounded-pill">
+                                        </div>
+                                        <span class="badge bg-danger rounded-pill">
                                                 {{ d.total_deuda|floatformat:2 }}€
                                             </span>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <div class="alert alert-success mb-0">
-                                    <i class="fas fa-check-circle me-2"></i>No hay deudas pendientes.
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal para mostrar los likes -->
-            <div class="modal fade" id="likesModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">A quienes les gustó</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <ul id="likes-list" class="list-unstyled mb-0">
-
+                                    </li>
+                                {% endfor %}
                             </ul>
-                        </div>
+                        {% else %}
+                            <div class="alert alert-success mb-0">
+                                <i class="fas fa-check-circle me-2"></i>No hay deudas pendientes.
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Modal para mostrar los likes -->
+        <div class="modal fade" id="likesModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">A quienes les gustó</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul id="likes-list" class="list-unstyled mb-0">
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
         </main>
 
     </div>
     {% block scripts %}
         <script>
             let idAEliminar = null;
-            let liAEliminar = null;
+            let elementoAEliminar = null;
             let tipoAEliminar = null;
             let viajeId = null;
             let modalEliminar = null;
@@ -623,12 +933,14 @@
             let modalBodyText = null;
 
             document.addEventListener('DOMContentLoaded', function () {
-                // ——— Inicialización eliminación ———
                 modalEliminar = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
                 btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar');
                 modalBodyText = document.getElementById('modal-body-text');
+
+                // Asignar eventos de eliminación
                 asignarEventosEliminar();
 
+                // Manejar confirmación de eliminación
                 btnConfirmarEliminar.addEventListener('click', function () {
                     let url = '';
                     if (tipoAEliminar === 'actividad') {
@@ -636,6 +948,11 @@
                     } else if (tipoAEliminar === 'colaborador') {
                         url = `/viajes/viaje/${viajeId}/colaborador/${idAEliminar}/eliminar-colaborador/`;
                     }
+
+                    // Mostrar estado de carga
+                    this.disabled = true;
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Eliminando...';
+
                     fetch(url, {
                         method: 'POST',
                         headers: {
@@ -643,57 +960,114 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error en la respuesta del servidor');
+                            }
+                            return response.json();
+                        })
                         .then(data => {
                             if (data.success) {
-                                liAEliminar.remove();
+                                // Cierra el modal
                                 modalEliminar.hide();
+
+                                // Elimina el elemento del DOM si existe
+                                if (elementoAEliminar) {
+                                    elementoAEliminar.remove();
+                                }
+
+                                // Muestra mensaje de éxito
+                                showAlert('success', data.message || 'Eliminado correctamente');
+
+                                // Recarga la página para asegurar consistencia
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1000);
+                            } else {
+                                showAlert('danger', data.error || 'Error al eliminar');
                             }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showAlert('danger', 'Error en el servidor');
+                        })
+                        .finally(() => {
+                            // Restablece el botón
+                            btnConfirmarEliminar.disabled = false;
+                            btnConfirmarEliminar.textContent = 'Eliminar';
                         });
                 });
 
-                // ——— Agregar colaborador ———
+                // Agregar colaborador
                 document.getElementById('agregarColaboradorBtn').addEventListener('click', async function () {
                     const select = document.getElementById('usuario_id');
                     const usuarioId = select.value;
                     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
                     if (!usuarioId) {
                         showAlert('danger', 'Por favor selecciona un amigo');
                         return;
                     }
+
+                    // Deshabilita el botón para evitar múltiples clics
+                    this.disabled = true;
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Agregando...';
+
                     try {
                         const response = await fetch("{% url 'viajes:agregar_colaborador' viaje.id %}", {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRFToken': csrfToken
+                                'X-CSRFToken': csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest'
                             },
                             body: JSON.stringify({usuario_id: usuarioId})
                         });
+
                         const data = await response.json();
-                        if (response.ok && data.success) {
-                            actualizarColaboradoresList(data);
+
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Error en el servidor');
+                        }
+
+                        if (data.success) {
+                            // Cierra el modal
                             bootstrap.Modal.getInstance(document.getElementById('agregarColaboradorModal')).hide();
-                            document.getElementById('agregarColaboradorForm').reset();
+
+                            // Muestra mensaje de éxito
+                            showAlert('success', data.message || 'Colaborador añadido correctamente');
+
+                            // Recarga la página para mostrar los cambios
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
                         } else {
-                            showAlert('danger', data.error || 'Error desconocido');
+                            showAlert('danger', data.error || 'Error al agregar colaborador');
                         }
                     } catch (error) {
-                        showAlert('danger', 'Error de red o del servidor');
+                        console.error('Error:', error);
+                        showAlert('danger', error.message || 'Error de conexión');
+                    } finally {
+                        // Vuelve a habilitar el botón
+                        this.disabled = false;
+                        this.textContent = 'Agregar';
                     }
                 });
 
-                // ——— Registrar pago ———
+                // Registrar pago
                 document.getElementById('agregarPagoBtn').addEventListener('click', async function () {
                     const form = document.getElementById('agregarPagoForm');
                     const formData = new FormData(form);
-                    const btn = this;
+
                     if (!formData.get('cantidad') || !formData.get('descripcion') || !formData.get('categoria')) {
                         showAlert('danger', 'Completa los campos obligatorios');
                         return;
                     }
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Guardando...';
+
+                    // Estado de carga
+                    this.disabled = true;
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+
                     try {
                         const response = await fetch("{% url 'viajes:agregar_gasto' viaje.pk %}", {
                             method: 'POST',
@@ -702,10 +1076,24 @@
                                 'X-Requested-With': 'XMLHttpRequest'
                             }
                         });
+
                         const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Error en el servidor');
+                        }
+
                         if (data.success) {
-                            showAlert('success', data.message);
-                            setTimeout(() => window.location.reload(), 1500);
+                            // Cierra el modal
+                            bootstrap.Modal.getInstance(document.getElementById('agregarPagoModal')).hide();
+
+                            // Muestra mensaje de éxito
+                            showAlert('success', data.message || 'Gasto registrado correctamente');
+
+                            // Recarga la página
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
                         } else {
                             if (data.errors) {
                                 let errorMsg = '';
@@ -718,98 +1106,135 @@
                             }
                         }
                     } catch (error) {
-                        showAlert('danger', 'Error de conexión: ' + error.message);
+                        console.error('Error:', error);
+                        showAlert('danger', error.message || 'Error de conexión');
                     } finally {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-save me-1"></i> Registrar Gasto';
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-save me-1"></i> Registrar Gasto';
                     }
                 });
 
-                // ——— Sistema de “likes” ———
-                // 1) Toggle like
+                // Sistema de likes
                 document.querySelectorAll('.like-btn').forEach(btn => {
                     btn.addEventListener('click', async e => {
                         e.preventDefault();
                         const pk = btn.dataset.id;
-                        const resp = await fetch(
-                            `{% url 'viajes:toggle_like' 0 %}`.replace('0', pk),
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRFToken': getCookie('csrftoken'),
-                                    'Accept': 'application/json',
-                                },
+
+                        try {
+                            const resp = await fetch(
+                                `{% url 'viajes:toggle_like' 0 %}`.replace('0', pk),
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRFToken': getCookie('csrftoken'),
+                                        'Accept': 'application/json',
+                                    },
+                                }
+                            );
+
+                            const data = await resp.json();
+                            const icon = btn.querySelector('i');
+
+                            if (data.liked) {
+                                icon.classList.remove('fa-regular');
+                                icon.classList.add('fa-solid');
+                                icon.style.color = 'red';
+                            } else {
+                                icon.classList.remove('fa-solid');
+                                icon.classList.add('fa-regular');
+                                icon.style.color = 'inherit';
                             }
-                        );
-                        const data = await resp.json();
-                        const icon = btn.querySelector('i');
 
-                        if (data.liked) {
-                            icon.classList.remove('fa-regular');
-                            icon.classList.add('fa-solid');
-                            icon.style.color = 'red';
-                        } else {
-                            icon.classList.remove('fa-solid');
-                            icon.classList.add('fa-regular');
-                            icon.style.color = 'inherit';
+                            document.querySelector(`.likes-count[data-id="${pk}"]`).textContent = data.count;
+                        } catch (error) {
+                            console.error('Error:', error);
+                            showAlert('danger', 'Error al guardar tu like');
                         }
-
-                        document
-                            .querySelector(`.likes-count[data-id="${pk}"]`)
-                            .textContent = data.count;
                     });
                 });
-                // 2) Mostrar lista en modal
+
+                // Mostrar lista de likes
                 document.querySelectorAll('.likes-count').forEach(link => {
-                    link.addEventListener('click', async () => {
+                    link.addEventListener('click', async (e) => {
+                        e.preventDefault();
                         const pk = link.dataset.id;
-                        const resp = await fetch(
-                            `{% url 'viajes:actividad_likes' 0 %}`.replace('0', pk)
-                        );
-                        const data = await resp.json();
-                        const ul = document.getElementById('likes-list');
-                        ul.innerHTML = '';
-                        if (data.usuarios.length) {
-                            data.usuarios.forEach(u => {
-                                const li = document.createElement('li');
-                                li.textContent = u;
-                                ul.appendChild(li);
-                            });
-                        } else {
-                            ul.innerHTML = '<li class="text-muted">Nadie aún</li>';
+
+                        try {
+                            const resp = await fetch(`{% url 'viajes:actividad_likes' 0 %}`.replace('0', pk));
+                            const data = await resp.json();
+                            const ul = document.getElementById('likes-list');
+                            ul.innerHTML = '';
+
+                            if (data.usuarios && data.usuarios.length) {
+                                data.usuarios.forEach(user => {
+                                    const li = document.createElement('li');
+                                    li.className = 'd-flex align-items-center mb-3 px-3';
+
+                                    // Foto de perfil (con imagen por defecto si no hay)
+                                    const fotoUrl = user.foto_perfil || '{% static "imagenes/default-pic.png" %}';
+
+                                    // Nombre de usuario
+                                    const username = user.username || 'Usuario';
+
+                                    li.innerHTML = `
+                        <img src="${fotoUrl}"
+                             class="rounded-circle me-3"
+                             width="40"
+                             height="40"
+                             style="object-fit: cover;"
+                             onerror="this.src='{% static "imagenes/default-pic.png" %}'">
+                        <span class="fw-medium">${username}</span>
+                    `;
+
+                                    ul.appendChild(li);
+                                });
+                            } else {
+                                ul.innerHTML = '<li class="text-muted py-2 px-3">No hay likes aún</li>';
+                            }
+
+                            // Mostrar el modal usando Bootstrap
+                            const modal = new bootstrap.Modal(document.getElementById('likesModal'));
+                            modal.show();
+
+                        } catch (error) {
+                            console.error('Error:', error);
+                            showAlert('danger', 'Error al cargar los likes');
                         }
                     });
                 });
 
-                // ——— Mapbox ———
-                mapboxgl.accessToken = 'pk.eyJ1IjoiYW5pdGFtdCIsImEiOiJjbTlpc29pb3EwNWxwMmtzYzQ0NmY1ZjFiIn0.4iAF_BAMHBlqMe7CDHWjyg';
-                const direccion = `{{ viaje.destino.nombre }}, {{ viaje.destino.pais }}`;
-                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(direccion)}.json?access_token=${mapboxgl.accessToken}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.features && data.features.length > 0) {
-                            const [lng, lat] = data.features[0].center;
-                            const map = new mapboxgl.Map({
-                                container: 'map',
-                                style: 'mapbox://styles/mapbox/streets-v11',
-                                center: [lng, lat],
-                                zoom: 10
-                            });
-                            new mapboxgl.Marker()
-                                .setLngLat([lng, lat])
-                                .setPopup(new mapboxgl.Popup().setText(direccion))
-                                .addTo(map);
-                        } else {
-                            document.getElementById('map').innerHTML = '<p class="text-muted">No se pudo localizar esta dirección.</p>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error al geocodificar:', error);
-                        document.getElementById('map').innerHTML = '<p class="text-danger">No se pudo cargar el mapa.</p>';
-                    });
-            }); // fin DOMContentLoaded
+                // Mapbox
+                if (document.getElementById('map')) {
+                    mapboxgl.accessToken = 'pk.eyJ1IjoiYW5pdGFtdCIsImEiOiJjbTlpc29pb3EwNWxwMmtzYzQ0NmY1ZjFiIn0.4iAF_BAMHBlqMe7CDHWjyg';
+                    const direccion = `{{ viaje.destino.nombre }}, {{ viaje.destino.pais }}`;
 
-            // ——— Funciones auxiliares ———
+                    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(direccion)}.json?access_token=${mapboxgl.accessToken}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.features && data.features.length > 0) {
+                                const [lng, lat] = data.features[0].center;
+                                const map = new mapboxgl.Map({
+                                    container: 'map',
+                                    style: 'mapbox://styles/mapbox/streets-v11',
+                                    center: [lng, lat],
+                                    zoom: 10
+                                });
+                                new mapboxgl.Marker()
+                                    .setLngLat([lng, lat])
+                                    .setPopup(new mapboxgl.Popup().setText(direccion))
+                                    .addTo(map);
+                            } else {
+                                document.getElementById('map').innerHTML = '<p class="text-muted">No se pudo localizar esta dirección.</p>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error al geocodificar:', error);
+                            document.getElementById('map').innerHTML = '<p class="text-danger">No se pudo cargar el mapa.</p>';
+                        });
+                }
+            });
+
+            // Funciones auxiliares
             function asignarEventosEliminar() {
                 document.querySelectorAll('.eliminar-actividad, .eliminar-colaborador').forEach(boton => {
                     boton.removeEventListener('click', handleEliminarClick);
@@ -821,62 +1246,71 @@
                 e.preventDefault();
                 idAEliminar = this.dataset.id;
                 tipoAEliminar = this.dataset.tipo;
-                liAEliminar = this.closest('li');
                 viajeId = this.dataset.viajeId || null;
+
+                // Encuentra el elemento más cercano a eliminar
+                if (tipoAEliminar === 'actividad') {
+                    elementoAEliminar = this.closest('.list-group-item');
+                } else if (tipoAEliminar === 'colaborador') {
+                    elementoAEliminar = this.closest('.col-md-6');
+                }
+
                 modalBodyText.textContent = tipoAEliminar === 'actividad'
                     ? "¿Estás seguro de que deseas eliminar esta actividad?"
                     : "¿Estás seguro de que deseas eliminar a este colaborador?";
+
                 modalEliminar.show();
             }
 
             function showAlert(type, message) {
-                const alert = document.getElementById('bootstrapAlert');
-                const alertMessage = document.getElementById('alert-message');
-                alert.className = 'alert alert-dismissible fade show d-none position-fixed start-50 translate-middle-x';
-                alert.style.top = '20px';
-                if (type === 'danger') {
-                    alert.classList.add('alert-danger');
-                    alertMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${message}`;
+                // Elimina alertas anteriores
+                const oldAlert = document.getElementById('dynamic-alert');
+                if (oldAlert) {
+                    oldAlert.remove();
                 }
-                alert.classList.remove('d-none');
-                setTimeout(() => alert.classList.add('d-none'), 5000);
-            }
 
-            function actualizarColaboradoresList(data) {
-                const colaboradoresList = document.querySelector('.participantes ul') ||
-                    document.createElement('ul');
-                if (!colaboradoresList.parentElement) {
-                    colaboradoresList.className = 'list-unstyled';
-                    document.querySelector('.participantes').appendChild(colaboradoresList);
-                }
-                const yaExiste = Array.from(colaboradoresList.children).some(li =>
-                    li.textContent.trim().toLowerCase().includes(data.username.toLowerCase())
-                );
-                if (yaExiste) return;
-                const newItem = document.createElement('li');
-                newItem.innerHTML = `
-            <i class="fas fa-user-friends me-2"></i>${data.username}
-            <a href="#" class="text-danger ms-2 eliminar-colaborador"
-               data-id="${data.id}" data-tipo="colaborador" data-viaje-id="${data.viaje_id}">
-                <i class="fas fa-trash-alt"></i>
-            </a>
+                // Crea el elemento de alerta
+                const alertDiv = document.createElement('div');
+                alertDiv.id = 'dynamic-alert';
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+                alertDiv.style.cssText = 'top: 20px; left: 50%; transform: translateX(-50%); z-index: 1100;';
+
+                alertDiv.innerHTML = `
+            <i class="fas fa-${type === 'danger' ? 'exclamation-triangle' : 'check-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
-                colaboradoresList.appendChild(newItem);
-                const noColabMsg = document.querySelector('.participantes .text-muted');
-                if (noColabMsg) noColabMsg.remove();
-                asignarEventosEliminar();
+
+                // Añade al cuerpo del documento
+                document.body.appendChild(alertDiv);
+
+                // Elimina automáticamente después de 5 segundos
+                setTimeout(() => {
+                    const alert = bootstrap.Alert.getOrCreateInstance(alertDiv);
+                    alert.close();
+                }, 5000);
             }
 
             function getCookie(name) {
                 let cookieValue = null;
                 if (document.cookie && document.cookie !== '') {
-                    document.cookie.split(';').forEach(c => {
-                        const [k, v] = c.trim().split('=');
-                        if (k === name) cookieValue = decodeURIComponent(v);
-                    });
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
                 }
                 return cookieValue;
             }
+
+            document.getElementById('likesModal').addEventListener('hidden.bs.modal', function () {
+                document.querySelector('.modal-backdrop').remove();
+                document.body.classList.remove('modal-open');
+                document.body.style.paddingRight = '';
+            });
         </script>
     {% endblock %}
 {% endblock %}

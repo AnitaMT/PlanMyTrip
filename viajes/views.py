@@ -452,10 +452,7 @@ def calcular_deudas(request, viaje_id):
     viaje = get_object_or_404(Viaje, pk=viaje_id)
     deudas = defaultdict(list)
 
-    divisiones_pendientes = DivisionGasto.objects.filter(
-        gasto__viaje=viaje,
-        pagado=False
-    ).select_related('gasto__pagador', 'deudor')
+    divisiones_pendientes = DivisionGasto.objects.filter(gasto__viaje=viaje,pagado=False).select_related('gasto__pagador', 'deudor')
 
     for division in divisiones_pendientes:
         if division.deudor != division.gasto.pagador:
@@ -503,6 +500,7 @@ class ListaGastosView(LoginRequiredMixin, ListView):
     model = Gasto
     template_name = 'viajes/lista_gastos.html'
     context_object_name = 'gastos'
+    paginate_by = 5
 
     def get_queryset(self):
         self.viaje = get_object_or_404(Viaje, pk=self.kwargs['pk'])
@@ -532,12 +530,7 @@ class ListaGastosView(LoginRequiredMixin, ListView):
 def obtener_deudas_agrupadas(viaje):
     qs = DivisionGasto.objects.filter(gasto__viaje=viaje, pagado=False).exclude(deudor=F('gasto__pagador'))
 
-    return (qs.values(
-            'deudor',
-            'deudor__username',
-            'gasto__pagador',
-            'gasto__pagador__username',
-        ).annotate(total_deuda=Sum('cantidad_a_pagar')))
+    return (qs.values('deudor', 'deudor__username', 'gasto__pagador', 'gasto__pagador__username',).annotate(total_deuda=Sum('cantidad_a_pagar')))
 
 
 class LikeToggleView(LoginRequiredMixin, View):
@@ -567,8 +560,17 @@ class LikeToggleView(LoginRequiredMixin, View):
 class ActividadLikesView(LoginRequiredMixin, View):
     def get(self, request, pk):
         actividad = get_object_or_404(Actividad, pk=pk)
-        usernames = actividad.me_gustas.values_list('usuario__username', flat=True)
-        return JsonResponse({'usuarios': list(usernames)})
+        usuarios = actividad.me_gustas.select_related('usuario').all()
+        data = {
+            'usuarios': [
+                {
+                    'username': mg.usuario.username,
+                    'foto_perfil': mg.usuario.foto_perfil.url if mg.usuario.foto_perfil else None
+                }
+                for mg in usuarios
+            ]
+        }
+        return JsonResponse(data)
 
 
 class AjustesUsuarioView(LoginRequiredMixin, TemplateView):

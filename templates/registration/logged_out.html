@@ -1,14 +1,29 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Logout - PlanMyTrip{% endblock %}
-{% block src_css %} {% static 'css/logout.css' %} {% endblock %}
 
 {% block content %}
-<div class="logout-section">
-    <h2>¡Has cerrado sesión exitosamente!</h2>
-    <p>Esperamos verte pronto nuevamente. Haz clic en el botón de abajo para volver a iniciar sesión.</p>
-    <button type="button" class="btn">
-        <a href="{% url 'viajes:login' %}">Iniciar sesión</a>
-    </button>
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh; background-color: #99c3ff; background-size: cover;">
+    <div class="card shadow-lg p-4 p-md-5 text-center" style="max-width: 500px; width: 100%; border: none; border-radius: 15px;">
+        <div class="card-body">
+            <i class="bi bi-box-arrow-right text-primary" style="font-size: 3.5rem;"></i>
+
+            <h2 class="mt-4 mb-3 fw-bold text-primary">¡Hasta pronto, viajer@!</h2>
+            <p class="text-muted mb-4">
+                Has cerrado sesión correctamente. Esperamos verte de nuevo pronto para planificar tus próximas aventuras.
+            </p>
+
+            <div class="d-grid gap-3">
+                <a href="{% url 'viajes:login' %}" class="btn btn-primary py-2 fw-bold">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Volver a iniciar sesión
+                </a>
+                <a href="{% url 'viajes:index' %}" class="btn btn-outline-secondary py-2">
+                    <i class="bi bi-house-door me-2"></i>Ir al inicio
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 {% endblock %}
