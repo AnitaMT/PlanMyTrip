@@ -560,8 +560,17 @@ class LikeToggleView(LoginRequiredMixin, View):
 class ActividadLikesView(LoginRequiredMixin, View):
     def get(self, request, pk):
         actividad = get_object_or_404(Actividad, pk=pk)
-        usernames = actividad.me_gustas.values_list('usuario__username', flat=True)
-        return JsonResponse({'usuarios': list(usernames)})
+        usuarios = actividad.me_gustas.select_related('usuario').all()
+        data = {
+            'usuarios': [
+                {
+                    'username': mg.usuario.username,
+                    'foto_perfil': mg.usuario.foto_perfil.url if mg.usuario.foto_perfil else None
+                }
+                for mg in usuarios
+            ]
+        }
+        return JsonResponse(data)
 
 
 class AjustesUsuarioView(LoginRequiredMixin, TemplateView):
