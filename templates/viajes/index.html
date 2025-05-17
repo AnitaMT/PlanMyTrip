@@ -4,101 +4,230 @@
 {% block src_css %} {% static 'css/index.css' %} {% endblock %}
 
 {% block content %}
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <!-- Navbar  -->
+    <nav class="navbar navbar-expand-lg navbar-light shadow-sm"
+         style="background-color: #f8f9fa; border-bottom: 1px solid #e1e5ee;">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="#">
-                <img src="{% static 'imagenes/logo.png' %}" width="60" height="60" alt="logo">
-                PlanMyTrip</a>
+            <a class="navbar-brand fw-bold" href="#" style="color: #4692ff; font-size: 1.5rem;">
+                <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
+                PlanMyTrip
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav me-3">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#funcionalidades">Funcionalidades</a>
+                <ul class="navbar-nav me-4">
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#funcionalidades" style="color: #495057;">Funcionalidades</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#testimonios">Testimonios</a>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#testimonios" style="color: #495057;">Testimonios</a>
                     </li>
                 </ul>
-                <a href="{% url 'viajes:login' %}" class="btn btn-outline-primary">
-                    <i class="bi bi-person"></i> Iniciar sesión
+                <a href="{% url 'viajes:login' %}" class="btn btn-primary"
+                   style="background-color: #4692ff; border: none;">
+                    <i class="bi bi-person me-1"></i> Iniciar sesión
                 </a>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section text-center text-white d-flex align-items-center justify-content-center">
-        <div class="container">
-            <h1 class="display-4 fw-bold">Viaja en grupo sin complicaciones</h1>
-            <p class="lead mt-3">Organiza, planifica y disfruta tu próximo viaje con amigos de forma sencilla.</p>
-            <a href="{% url 'viajes:login' %}" class="btn btn-lg btn-light mt-4">Empieza ahora</a>
+    <section class="hero-section d-flex align-items-start justify-content-center" style="
+    background-image: url('https://www.keytotheworldtravel.com/wp-content/uploads/2022/10/group-travel-header.jpg.webp');
+    min-height: 70vh;
+    color: white;
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding-top: 0.1vh;">
+        <div class="container text-center py-5">
+            <h1 class="display-4 fw-bold mb-4">Viaja en grupo sin complicaciones</h1>
+            <p class="lead mb-5" style="font-size: 1.25rem; max-width: 700px; margin: 0 auto;">
+                Organiza, planifica y disfruta tu próximo viaje con amigos de forma sencilla y divertida.
+            </p>
+            <div class="d-flex justify-content-center gap-4">
+                <a href="{% url 'viajes:login' %}" class="btn btn-light btn-lg px-4 py-2" style="color: #4692ff;">
+                    Empieza ahora
+                </a>
+                <a href="#funcionalidades" class="btn btn-light btn-lg px-4 py-2" style="color: #4692ff;">
+                    Conoce más
+                </a>
+            </div>
         </div>
     </section>
 
     <!-- Funcionalidades -->
-    <section id="funcionalidades" class="py-5 bg-white">
-        <div class="container text-center">
-            <h2 class="mb-4 text-primary fw-semibold">¿Qué puedes hacer con PlanMyTrip?</h2>
-            <div class="row">
+    <section id="funcionalidades" class="py-5" style="background-color: #f8f9fa;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold mb-3" style="color: #4692ff;">¿Qué puedes hacer con PlanMyTrip?</h2>
+                <p class="text-muted" style="max-width: 700px; margin: 0 auto;">
+                    Descubre todas las herramientas que tenemos para hacer tu viaje en grupo perfecto
+                </p>
+            </div>
+
+            <div class="row g-4">
                 <div class="col-md-4">
-                    <h5>Crear viajes en grupo</h5>
-                    <p>Agrega destinos, fechas y participantes fácilmente.</p>
+                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-4" style="font-size: 2.5rem; color: #4692ff;">
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                            <h4 class="mb-3">Crear viajes en grupo</h4>
+                            <p class="text-muted">
+                                Agrega destinos, fechas y participantes fácilmente con nuestro sistema intuitivo.
+                            </p>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="col-md-4">
-                    <h5>Organizar presupuestos</h5>
-                    <p>Controla gastos y reparte costes entre todos los viajeros.</p>
+                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-4" style="font-size: 2.5rem; color: #4692ff;">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <h4 class="mb-3">Organizar presupuestos</h4>
+                            <p class="text-muted">
+                                Controla gastos y reparte costes automáticamente entre todos los viajeros.
+                            </p>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="col-md-4">
-                    <h5>Chatea y colabora</h5>
-                    <p>Comunícate con el grupo, propone actividades y vota ideas.</p>
+                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-4" style="font-size: 2.5rem; color: #4692ff;">
+                                <i class="bi bi-chat-dots"></i>
+                            </div>
+                            <h4 class="mb-3">Crea actividades y colabora</h4>
+                            <p class="text-muted">
+                                Sistema proponer actividades y votar ideas en tiempo real.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Testimonios -->
-    <section id="testimonios" class="bg-light py-5">
-        <div class="container text-center">
-            <h2 class="mb-4 text-primary fw-semibold">Lo que dicen nuestros viajeros</h2>
-            <div class="row">
+    <section id="testimonios" class="py-5" style="background-color: white;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold mb-3" style="color: #4692ff;">Lo que dicen nuestros viajeros</h2>
+                <p class="text-muted">Experiencias reales de quienes ya usan PlanMyTrip</p>
+            </div>
+
+            <div class="row g-4">
                 <div class="col-md-4">
-                    <blockquote class="blockquote">
-                        <p>"Organizar un viaje con mis amigos nunca fue tan fácil."</p>
-                        <footer class="blockquote-footer">Lucía G.</footer>
-                    </blockquote>
+                    <div class="card h-100 border-0 shadow-sm p-4" style="border-radius: 12px;">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="https://randomuser.me/api/portraits/women/32.jpg"
+                                 class="rounded-circle me-3" width="60" height="60" alt="Lucía">
+                            <div>
+                                <h5 class="mb-0">Lucía G.</h5>
+                                <small class="text-muted">Barcelona</small>
+                            </div>
+                        </div>
+                        <p class="mb-0">"Organizar un viaje con mis amigos nunca fue tan fácil. Todo en un solo
+                            lugar!"</p>
+                    </div>
                 </div>
+
                 <div class="col-md-4">
-                    <blockquote class="blockquote">
-                        <p>"¡Nos encantó poder votar las actividades! Muy útil."</p>
-                        <footer class="blockquote-footer">Carlos M.</footer>
-                    </blockquote>
+                    <div class="card h-100 border-0 shadow-sm p-4" style="border-radius: 12px;">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="https://randomuser.me/api/portraits/men/45.jpg"
+                                 class="rounded-circle me-3" width="60" height="60" alt="Carlos">
+                            <div>
+                                <h5 class="mb-0">Carlos M.</h5>
+                                <small class="text-muted">Madrid</small>
+                            </div>
+                        </div>
+                        <p class="mb-0">"La función de votación de actividades es increíble. ¡Todos participan por
+                            igual!"</p>
+                    </div>
                 </div>
+
                 <div class="col-md-4">
-                    <blockquote class="blockquote">
-                        <p>"La app nos ahorró mucho tiempo y malentendidos."</p>
-                        <footer class="blockquote-footer">Sara T.</footer>
-                    </blockquote>
+                    <div class="card h-100 border-0 shadow-sm p-4" style="border-radius: 12px;">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg"
+                                 class="rounded-circle me-3" width="60" height="60" alt="Sara">
+                            <div>
+                                <h5 class="mb-0">Sara T.</h5>
+                                <small class="text-muted">Valencia</small>
+                            </div>
+                        </div>
+                        <p class="mb-0">"Nos ahorró horas de discusiones y mensajes. Todo el grupo está encantado."</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- CTA Section -->
+    <section class="py-5" style="background-color: #e6f0ff;">
+        <div class="container text-center py-4">
+            <h2 class="fw-bold mb-4" style="color: #4692ff;">¿Listo para tu próxima aventura?</h2>
+            <a href="{% url 'viajes:login' %}" class="btn btn-primary btn-lg px-5 py-3"
+               style="background-color: #4692ff; border: none; box-shadow: 0 4px 12px rgba(70, 146, 255, 0.3);">
+                Comenzar ahora
+            </a>
+        </div>
+    </section>
+
     <!-- Footer -->
-    <footer class="footer bg-primary text-white py-4 mt-auto">
+    <footer class="footer py-5" style="background-color: #f8f9fa; color: #495057; border-top: 1px solid #e1e5ee;">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="mb-3" style="color: #4692ff;">
+                        <img src="{% static 'imagenes/logo.png' %}" width="40" height="40" alt="logo" class="me-2">
+                        PlanMyTrip
+                    </h5>
+                    <p>La mejor manera de planificar viajes en grupo con tus amigos.</p>
                 </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+                <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
+                    <h5 class="mb-3" style="color: #4692ff;">Enlaces</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#funcionalidades" class="text-decoration-none"
+                                            style="color: #495057;">Funcionalidades</a></li>
+                        <li class="mb-2"><a href="#testimonios" class="text-decoration-none" style="color: #495057;">Testimonios</a>
+                        </li>
+                        <li><a href="{% url 'viajes:login' %}" class="text-decoration-none" style="color: #495057;">Iniciar
+                            sesión</a></li>
+                    </ul>
                 </div>
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="mb-3" style="color: #4692ff;">Legal</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Términos de
+                            uso</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Política de
+                            privacidad</a></li>
+                        <li><a href="#" class="text-decoration-none" style="color: #495057;">Cookies</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="mb-3" style="color: #4692ff;">Síguenos</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                class="fab fa-linkedin-in fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
+            <div class="text-center">
+                <p class="mb-0 small">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>

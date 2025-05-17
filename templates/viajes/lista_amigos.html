@@ -2,12 +2,11 @@
 {% load static %}
 {% block title %}PlanMyTrip – Tus Amigos{% endblock %}
 
-{% block src_css %}{% static 'css/pagina_inicio.css' %}{% endblock %}
-
 {% block content %}
-<div class="wrapper d-flex flex-column min-vh-100">
+    <div class="wrapper d-flex flex-column min-vh-100">
         <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top"
+             style="background-color: #f8f9fa;">
             <div class="container-fluid">
                 <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
                     <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
@@ -42,7 +41,7 @@
                                     </li>
                                 {% endif %}
                             {% empty %}
-                                {#                                <li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
+                                {#<li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
                             {% endfor %}
                             <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             <li>
@@ -73,7 +72,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="{% url 'viajes:ajustes_usuario' %}"><i
-                                    class="fas fa-user-cog me-2"></i>Ajustes</a></li>
+                                class="fas fa-user-cog me-2"></i>Ajustes</a></li>
                             <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a>
                             </li>
                             <li>
@@ -93,52 +92,120 @@
             </div>
         </nav>
 
-  <main class="flex-grow-1">
-    <div class="container py-5">
-      <h2 class="mb-4">Tu Lista de Amigos</h2>
+        <main class="flex-grow-1 bg-light">
+            <div class="container py-4">
+                <!-- Header con icono -->
+                <div class="d-flex align-items-center mb-4">
+                    <h2 class="mb-0 me-3"><i class="fas fa-heart text-danger me-2"></i>Tus compañeros de viaje</h2>
+                </div>
 
-      {% if amigos %}
-      <div class="row row-cols-1 row-cols-md-2 g-4">
-        {% for amigo in amigos %}
-        <div class="col">
-          <div class="card shadow-sm h-100">
-            <div class="card-body d-flex align-items-center">
-              <div class="me-3">
-                <img src="{% if amigo.foto_perfil %}{{ amigo.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
-                     alt="{{ amigo.username }}" width="50" height="50" class="rounded-circle">
-              </div>
-              <div>
-                <h5 class="card-title mb-1">{{ amigo.username }}</h5>
-                <a href="#" class="btn btn-sm btn-outline-danger">Eliminar Amistad</a>
-              </div>
+                {% if amigos %}
+                    <div class="row g-3">
+                        {% for amigo in amigos %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border-0 shadow-sm h-100 hover-scale">
+                                    <div class="card-body d-flex align-items-center">
+                                        <img src="{% if amigo.foto_perfil %}{{ amigo.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                             alt="Foto de {{ amigo.username }}"
+                                             class="rounded-circle me-3" width="60" height="60">
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1">{{ amigo.username }}</h5>
+                                            <small class="text-muted">Amigos desde {{ amigo.date_joined|date:"M Y" }}</small>
+                                        </div>
+                                        <a href="#" class="btn btn-sm btn-outline-danger rounded-circle"
+                                           style="width: 40px; height: 40px;"
+                                           data-bs-toggle="tooltip" title="Eliminar amistad">
+                                            <i class="fas fa-user-minus"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-user-friends text-muted mb-3" style="font-size: 3rem;"></i>
+                            <h4 class="text-muted">Aún no tienes amigos</h4>
+                            <p class="text-muted mb-4">Conéctate con otros viajeros para planificar aventuras juntos</p>
+                            <a href="{% url 'viajes:usuarios_disponibles' %}" class="btn btn-primary me-2">
+                                <i class="fas fa-user-plus me-2"></i>Buscar amigos
+                            </a>
+                            <a href="{% url 'viajes:inicio' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-home me-2"></i>Volver al inicio
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="alert alert-info">Aún no tienes amigos. Envía solicitudes y conéctate con otros viajeros.</div>
-      {% endif %}
+        </main>
 
-      <a href="{% url 'viajes:inicio' %}" class="btn btn-secondary mt-4">Volver al inicio</a>
+        <!-- Footer -->
+        <footer class="footer py-5" style="background-color: #f8f9fa; color: #495057; border-top: 1px solid #e1e5ee;">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 mb-4 mb-lg-0">
+                        <h5 class="mb-3" style="color: #4692ff;">
+                            <img src="{% static 'imagenes/logo.png' %}" width="40" height="40" alt="logo" class="me-2">
+                            PlanMyTrip
+                        </h5>
+                        <p>La mejor manera de planificar viajes en grupo con tus amigos.</p>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
+                        <h5 class="mb-3" style="color: #4692ff;">Enlaces</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#funcionalidades" class="text-decoration-none"
+                                                style="color: #495057;">Funcionalidades</a></li>
+                            <li class="mb-2"><a href="#testimonios" class="text-decoration-none"
+                                                style="color: #495057;">Testimonios</a>
+                            </li>
+                            <li><a href="{% url 'viajes:login' %}" class="text-decoration-none" style="color: #495057;">Iniciar
+                                sesión</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                        <h5 class="mb-3" style="color: #4692ff;">Legal</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Términos de
+                                uso</a></li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Política de
+                                privacidad</a></li>
+                            <li><a href="#" class="text-decoration-none" style="color: #495057;">Cookies</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <h5 class="mb-3" style="color: #4692ff;">Síguenos</h5>
+                        <div class="d-flex gap-3">
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-facebook-f fa-lg"></i></a>
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-twitter fa-lg"></i></a>
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-instagram fa-lg"></i></a>
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-linkedin-in fa-lg"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
+                <div class="text-center">
+                    <p class="mb-0 small">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </footer>
     </div>
-  </main>
 
-  <!-- Footer -->
-  <footer class="footer bg-primary text-white py-4 mt-auto">
-    <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-6 text-center text-md-start">
-          <p class="mb-0">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
-        </div>
-        <div class="col-md-6 text-center text-md-end">
-          <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
-          <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-          <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-          <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
-        </div>
-      </div>
-    </div>
-  </footer>
-</div>
+    <style>
+        .hover-scale {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-scale:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+        }
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
 {% endblock %}
