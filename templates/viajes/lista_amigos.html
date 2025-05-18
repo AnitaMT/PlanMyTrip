@@ -63,6 +63,8 @@
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="avatar-container me-2">
                                 <img src="
+
+
                                         {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                      alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
                             </div>
@@ -72,7 +74,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="{% url 'viajes:ajustes_usuario' %}"><i
-                                class="fas fa-user-cog me-2"></i>Ajustes</a></li>
+                                    class="fas fa-user-cog me-2"></i>Ajustes</a></li>
                             <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a>
                             </li>
                             <li>
@@ -105,18 +107,23 @@
                             <div class="col-md-6 col-lg-4">
                                 <div class="card border-0 shadow-sm h-100 hover-scale">
                                     <div class="card-body d-flex align-items-center">
-                                        <img src="{% if amigo.foto_perfil %}{{ amigo.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                        <img src="
+
+                                                {% if amigo.foto_perfil %}{{ amigo.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                              alt="Foto de {{ amigo.username }}"
                                              class="rounded-circle me-3" width="60" height="60">
                                         <div class="flex-grow-1">
                                             <h5 class="mb-1">{{ amigo.username }}</h5>
-                                            <small class="text-muted">Amigos desde {{ amigo.date_joined|date:"M Y" }}</small>
+                                            <small class="text-muted">Amigos
+                                                desde {{ amigo.date_joined|date:"M Y" }}</small>
                                         </div>
-                                        <a href="#" class="btn btn-sm btn-outline-danger rounded-circle"
-                                           style="width: 40px; height: 40px;"
-                                           data-bs-toggle="tooltip" title="Eliminar amistad">
+                                        <button class="btn btn-sm btn-outline-danger rounded-circle eliminar-amigo-btn"
+                                                style="width: 40px; height: 40px;"
+                                                data-bs-toggle="tooltip"
+                                                title="Eliminar amistad"
+                                                data-amigo-id="{{ amigo.id }}">
                                             <i class="fas fa-user-minus"></i>
-                                        </a>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -166,9 +173,11 @@
                     <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
                         <h5 class="mb-3" style="color: #4692ff;">Legal</h5>
                         <ul class="list-unstyled">
-                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Términos de
+                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Términos
+                                de
                                 uso</a></li>
-                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Política de
+                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Política
+                                de
                                 privacidad</a></li>
                             <li><a href="#" class="text-decoration-none" style="color: #495057;">Cookies</a></li>
                         </ul>
@@ -195,14 +204,108 @@
         </footer>
     </div>
 
+    <!-- Modal de Confirmación de Eliminación -->
+    <div class="modal fade" id="confirmarEliminarModal" tabindex="-1"
+         aria-labelledby="confirmarEliminarModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmarEliminarModalLabel">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="modal-body-text">
+                    ¿Estás seguro de que deseas eliminar a este amigo?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnConfirmarEliminar" class="btn btn-danger">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block scripts %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+
+                const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
+                let amigoIdAEliminar = null;
+                let cardAEliminar = null;
+
+                document.querySelectorAll('.eliminar-amigo-btn').forEach(button => {
+                    button.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        amigoIdAEliminar = this.getAttribute('data-amigo-id');
+                        cardAEliminar = this.closest('.col-md-6, .col-lg-4');
+
+                        const amigoNombre = this.closest('.card-body').querySelector('h5').textContent;
+                        document.getElementById('modal-body-text').textContent =
+                            `¿Estás seguro de que deseas eliminar a ${amigoNombre} de tu lista de amigos?`;
+
+                        confirmarEliminarModal.show();
+                    });
+                });
+
+                document.getElementById('btnConfirmarEliminar').addEventListener('click', function () {
+                    if (amigoIdAEliminar && cardAEliminar) {
+                        fetch("{% url 'viajes:eliminar_amigo' 0 %}".replace('0', amigoIdAEliminar), {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'same-origin'
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                confirmarEliminarModal.hide();
+
+                                if (data.success) {
+                                    cardAEliminar.style.transition = 'all 0.3s ease';
+                                    cardAEliminar.style.opacity = '0';
+                                    cardAEliminar.style.height = '0';
+                                    cardAEliminar.style.margin = '0';
+                                    cardAEliminar.style.padding = '0';
+
+                                    setTimeout(() => {
+                                        cardAEliminar.remove();
+
+                                        // Si no quedan amigos, recarga la página
+                                        if (document.querySelectorAll('.eliminar-amigo-btn').length === 0) {
+                                            window.location.reload();
+                                        }
+                                    }, 300);
+                                } else {
+                                    alert(data.error || 'Error al eliminar el amigo');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                confirmarEliminarModal.hide();
+                                alert('Ocurrió un error al intentar eliminar el amigo');
+                            });
+                    }
+                });
+            });
+        </script>
+    {% endblock %}
+
     <style>
         .hover-scale {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+
         .hover-scale:hover {
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
         }
+
         .btn-outline-danger:hover {
             background-color: #dc3545;
             color: white;

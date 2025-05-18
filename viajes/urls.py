@@ -5,7 +5,8 @@ from viajes.views import IndexView, RegistroUsuarioView, UsuarioLoginView, Usuar
     CrearViajeView, DetallesViajeView, AgregarColaboradorView, EditarActividadView, EliminarActividadView, \
     AgregarActividadView, ListaGastosView, AgregarGastoView, calcular_deudas, LikeToggleView, ActividadLikesView, \
     EditarViajeView, EliminarViajeView, NotificacionRedirectView, NotificacionListView, MarcarTodasLeidasView, \
-    ListaAmigosView, ResponderSolicitudView, EnviarSolicitudView, ListaSolicitudesView, UsuariosDisponiblesView
+    ListaAmigosView, ResponderSolicitudView, EnviarSolicitudView, ListaSolicitudesView, UsuariosDisponiblesView, \
+    EliminarAmigoView, EliminarGastoView
 from views import EliminarColaboradorView, DetallesActividadView, AjustesUsuarioView, EliminarNotificacionView
 
 app_name = 'viajes'
@@ -28,6 +29,7 @@ urlpatterns = [
     path('amistad/usuarios/', UsuariosDisponiblesView.as_view(), name='usuarios_disponibles'),
     path('amistad/recibidas/', ListaSolicitudesView.as_view(), name='solicitudes_recibidas'),
     path('amistad/responder/<int:pk>/', ResponderSolicitudView.as_view(), name='responder_solicitud'),
+    path('eliminar_amigo/<int:pk>/', EliminarAmigoView.as_view(), name='eliminar_amigo'),
     path('amistad/lista/', ListaAmigosView.as_view(), name='lista_amigos'),
     path('<int:viaje_id>/agregar-colaborador/', AgregarColaboradorView.as_view(), name='agregar_colaborador'),
     path('viaje/<int:viaje_id>/colaborador/<int:pk>/eliminar-colaborador/', EliminarColaboradorView.as_view(), name='eliminar_colaborador'),
@@ -37,6 +39,7 @@ urlpatterns = [
     path('actividad/<int:pk>/eliminar/', EliminarActividadView.as_view(), name='eliminar-actividad'),
     path('<int:pk>/gastos/', ListaGastosView.as_view(), name='lista_gastos'),
     path('<int:pk>/agregar-gasto/', AgregarGastoView.as_view(), name='agregar_gasto'),
+    path('eliminar_gasto/<int:pk>/', EliminarGastoView.as_view(), name='eliminar_gasto'),
     path('<int:viaje_id>/deudas/', calcular_deudas, name='calcular_deudas'),
     path('actividad/<int:pk>/toggle-like/', LikeToggleView.as_view(), name='toggle_like'),
     path('actividad/<int:pk>/likes/', ActividadLikesView.as_view(),name='actividad_likes'),
