@@ -103,43 +103,6 @@ class CrearViajeView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-# class DetallesViajeView(LoginRequiredMixin, DetailView):
-#     model = Viaje
-#     template_name = 'viajes/detalles_viaje.html'
-#     context_object_name = 'viaje'
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         user = self.request.user
-#         viaje = self.object
-#         context['amigos'] = self.request.user.amigos.all()
-#         deudas = calcular_deudas(self.request, viaje.id)
-#         deudas_resumen = {}
-#
-#         for deudor, deudas_lista in deudas.items():
-#             total = Decimal('0.00')
-#
-#             for deuda_info in deudas_lista:
-#                 cantidad = deuda_info['deuda']
-#                 total += cantidad
-#
-#             deudas_resumen[deudor.username] = round(Decimal(total), 2)
-#
-#         context['deudas'] = deudas_resumen
-#         context['deudas_detalladas'] = deudas
-#
-#         context['es_creador'] = viaje.creador == self.request.user
-#
-#         me_gustas_del_usuario = user.me_gustas_dados.all()
-#
-#         likes_del_viaje = me_gustas_del_usuario.filter(actividad__viaje=viaje)
-#
-#         ids_de_actividades = [like.actividad.id for like in likes_del_viaje]
-#
-#         context['liked_actividades'] = list(ids_de_actividades)
-#
-#         return context
-
 class DetallesViajeView(LoginRequiredMixin, DetailView):
     model = Viaje
     template_name = 'viajes/detalles_viaje.html'
@@ -173,6 +136,11 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
 
         me_gustas = user.me_gustas_dados.filter(actividad__viaje=viaje)
         context['liked_actividades'] = [like.actividad.id for like in me_gustas]
+
+        gastos_por_categoria = (Gasto.objects.filter(viaje=viaje).values('categoria').annotate(total=Sum('cantidad')))
+
+        context['categorias'] = [g['categoria'] for g in gastos_por_categoria]
+        context['cantidades'] = [float(g['total']) for g in gastos_por_categoria]
 
         return context
 
@@ -477,37 +445,6 @@ def calcular_deudas(request, viaje_id):
 
     return dict(deudas)
 
-# class ListaGastosView(LoginRequiredMixin, ListView):
-#     model = Gasto
-#     template_name = 'viajes/lista_gastos.html'
-#     context_object_name = 'gastos'
-#
-#     def get_queryset(self):
-#         self.viaje = get_object_or_404(Viaje, pk=self.kwargs['pk'])
-#         return Gasto.objects.filter(viaje=self.viaje).order_by('-fecha')
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['viaje'] = self.viaje
-#         context['deudas'] = calcular_deudas(self.request, self.viaje.id)
-#         context['deudas_con_deudores'] = context['deudas']
-#
-#         gastos_deudores = {}
-#
-#         for gasto in context['gastos']:
-#             todas_las_divisiones = DivisionGasto.objects.filter(gasto=gasto)
-#
-#             lista_deudores = []
-#
-#             for division in todas_las_divisiones:
-#                 if division.deudor != gasto.pagador:
-#                     lista_deudores.append(division.deudor.username)
-#
-#             gastos_deudores[gasto.id] = lista_deudores
-#
-#         context['gastos_deudores'] = gastos_deudores
-#
-#         return context
 
 class ListaGastosView(LoginRequiredMixin, ListView):
     model = Gasto

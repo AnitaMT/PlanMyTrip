@@ -154,14 +154,6 @@
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="avatar-container me-2">
                                 <img src="
-
-
-
-
-
-
-
-
                                         {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                      alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
                             </div>
@@ -341,7 +333,7 @@
                                 </div>
                             </div>
 
-                            <!-- Participantes y actividades recientes -->
+                            <!-- Participantes -->
                             <div class="col-lg-6">
                                 <div class="info-card card h-100 mb-4">
                                     <div class="card-header card-header-custom">
@@ -352,13 +344,6 @@
                                             <h6><i class="fas fa-crown text-warning me-2"></i>Creador</h6>
                                             <div class="d-flex align-items-center mb-3">
                                                 <img src="
-
-
-
-
-
-
-
                                                         {% if viaje.creador.foto_perfil %}{{ viaje.creador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                      class="rounded-circle me-3" width="40" height="40">
                                                 <span>{{ viaje.creador.username }}</span>
@@ -373,13 +358,6 @@
                                                         <div class="col-md-6 mb-3">
                                                             <div class="d-flex align-items-center">
                                                                 <img src="
-
-
-
-
-
-
-
 
                                                                         {% if colaborador.foto_perfil %}{{ colaborador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                                      class="rounded-circle me-3" width="40" height="40">
@@ -535,6 +513,9 @@
                                                                 <div class="d-flex align-items-center">
                                                                     <img src="
 
+
+
+
                                                                             {% if usuario.foto_perfil %}{{ usuario.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                                          class="rounded-circle me-2" width="30"
                                                                          height="30">
@@ -590,16 +571,53 @@
                                                         75%
                                                     </div>
                                                 </div>
-                                                <small class="text-muted">1,250€ de 1,500€ restantes</small>
                                             </div>
                                         {% endif %}
                                         <div>
                                             <h6>Gastos por categoría</h6>
-                                            <div class="text-center py-3">
-                                                <i class="fas fa-chart-pie fa-3x text-muted"></i>
-                                                <p class="text-muted mt-2">Próximamente: gráfico de gastos por
-                                                    categoría</p>
-                                            </div>
+                                            {% if categorias %}
+                                                <div>
+                                                    <canvas id="graficoGastosPorCategoria" width="300"
+                                                            height="300"></canvas>
+                                                </div>
+                                                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                                                <script>
+                                                    const ctx = document.getElementById('graficoGastosPorCategoria').getContext('2d');
+                                                    const categorias = {{ categorias|safe }};
+                                                    const cantidades = {{ cantidades|safe }};
+
+                                                    new Chart(ctx, {
+                                                        type: 'pie',
+                                                        data: {
+                                                            labels: categorias,
+                                                            datasets: [{
+                                                                label: 'Gastos por categoría',
+                                                                data: cantidades,
+                                                                backgroundColor: [
+                                                                    '#FF6384', '#36A2EB', '#FFCE56', '#81C784', '#BA68C8', '#4DD0E1'
+                                                                ],
+                                                                hoverOffset: 8
+                                                            }]
+                                                        },
+                                                        options: {
+                                                            plugins: {
+                                                                tooltip: {
+                                                                    callbacks: {
+                                                                        label: function (context) {
+                                                                            return `${context.label}: ${context.formattedValue}€`;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                </script>
+                                            {% else %}
+                                                <div class="text-center py-3">
+                                                    <i class="fas fa-chart-pie fa-3x text-muted"></i>
+                                                    <p class="text-muted mt-2">Aún no hay gastos registrados.</p>
+                                                </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -841,20 +859,15 @@
                                                 {% for u in viaje.colaboradores.all %}
                                                     {% if u.id == deudor_id %}
                                                         <img src="
+
+
+
                                                                 {% if u.foto_perfil %}{{ u.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                              class="rounded-circle me-2" width="30" height="30">
                                                     {% endif %}
                                                 {% endfor %}
                                                 {% if viaje.creador.id == deudor_id %}
                                                     <img src="
-
-
-
-
-
-
-
-
 
 
 
