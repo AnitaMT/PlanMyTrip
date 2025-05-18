@@ -3,6 +3,7 @@
 {% block title %}PlanMyTrip - Lista de Gastos{% endblock %}
 
 {% block content %}
+    {% csrf_token %}
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" style="background-color: #f8f9fa;">
         <div class="container-fluid">
@@ -112,12 +113,20 @@
                                         {% if u.id == deudor_id %}
                                             <img src="
 
+
+
+
+
                                                     {% if u.foto_perfil %}{{ u.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                  class="rounded-circle me-2" width="35" height="35">
                                         {% endif %}
                                     {% endfor %}
                                     {% if viaje.creador.id == deudor_id %}
                                         <img src="
+
+
+
+
 
                                                 {% if viaje.creador.foto_perfil %}{{ viaje.creador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                              class="rounded-circle me-2" width="35" height="35">
@@ -152,6 +161,7 @@
                             <th>Cantidad</th>
                             <th>Fecha</th>
                             <th>Deudor/es</th>
+                            <th>Acciones</th> <!-- Nueva columna -->
                         </tr>
                         </thead>
                         <tbody>
@@ -173,6 +183,17 @@
                                             {% endif %}
                                         {% endif %}
                                     {% endfor %}
+                                </td>
+                                <td>
+                                    {% if gasto.pagador == user or viaje.creador == user %}
+                                        <button class="btn btn-sm btn-outline-danger eliminar-gasto-btn"
+                                                data-gasto-id="{{ gasto.id }}"
+                                                data-gasto-desc="{{ gasto.descripcion }}"
+                                                data-bs-toggle="tooltip"
+                                                title="Eliminar gasto">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -277,4 +298,85 @@
             </div>
         </div>
     </footer>
+
+    <!-- Modal de Confirmación de Eliminación -->
+    <div class="modal fade" id="confirmarEliminarGastoModal" tabindex="-1"
+         aria-labelledby="confirmarEliminarGastoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmarEliminarGastoModalLabel">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="modal-gasto-body-text">
+                    ¿Estás seguro de que deseas eliminar este gasto?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnConfirmarEliminarGasto" class="btn btn-danger">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block scripts %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const confirmarEliminarGastoModal = new bootstrap.Modal(document.getElementById('confirmarEliminarGastoModal'));
+                let gastoIdAEliminar = null;
+
+                document.querySelectorAll('.eliminar-gasto-btn').forEach(button => {
+                    button.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        gastoIdAEliminar = this.getAttribute('data-gasto-id');
+                        const gastoDesc = this.getAttribute('data-gasto-desc');
+
+                        document.getElementById('modal-gasto-body-text').textContent =
+                            `¿Estás seguro de que deseas eliminar el gasto "${gastoDesc}"?`;
+
+                        confirmarEliminarGastoModal.show();
+                    });
+                });
+
+                document.getElementById('btnConfirmarEliminarGasto').addEventListener('click', function () {
+                    if (gastoIdAEliminar) {
+                        fetch(`{% url 'viajes:eliminar_gasto' 0 %}`.replace('0', gastoIdAEliminar), {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'same-origin'
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                confirmarEliminarGastoModal.hide();
+
+                                if (data.success) {
+                                    // Encuentra y elimina la fila de la tabla
+                                    const fila = document.querySelector(`.eliminar-gasto-btn[data-gasto-id="${gastoIdAEliminar}"]`).closest('tr');
+                                    fila.style.transition = 'all 0.3s ease';
+                                    fila.style.opacity = '0';
+
+                                    setTimeout(() => {
+                                        fila.remove();
+                                        // Recargar la página para actualizar las deudas
+                                        window.location.reload();
+                                    }, 300);
+                                } else {
+                                    alert(data.error || 'Error al eliminar el gasto');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                confirmarEliminarGastoModal.hide();
+                                alert('Ocurrió un error al intentar eliminar el gasto');
+                            });
+                    }
+                });
+            });
+        </script>
+    {% endblock %}
 {% endblock %}

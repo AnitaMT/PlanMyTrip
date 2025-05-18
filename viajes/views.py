@@ -223,7 +223,9 @@ class UsuariosDisponiblesView(LoginRequiredMixin, ListView):
     context_object_name = 'usuarios'
 
     def get_queryset(self):
-        return UsuarioPersonalizado.objects.exclude(pk=self.request.user.pk)
+        usuario = self.request.user
+        amigos = usuario.amigos.all()
+        return UsuarioPersonalizado.objects.exclude(pk__in=amigos).exclude(pk=usuario.pk)
 
 
 class ListaSolicitudesView(LoginRequiredMixin, ListView):
@@ -257,6 +259,17 @@ class ListaAmigosView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return self.request.user.amigos.all()
 
+
+class EliminarAmigoView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        amigo = get_object_or_404(UsuarioPersonalizado, pk=pk)
+
+        # Verificar que el usuario es realmente amigo
+        if amigo in request.user.amigos.all():
+            request.user.amigos.remove(amigo)
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'error': 'Este usuario no es tu amigo'}, status=400)
 
 class AgregarColaboradorView(LoginRequiredMixin, View):
     def post(self, request, viaje_id):
@@ -532,6 +545,29 @@ def obtener_deudas_agrupadas(viaje):
 
     return (qs.values('deudor', 'deudor__username', 'gasto__pagador', 'gasto__pagador__username',).annotate(total_deuda=Sum('cantidad_a_pagar')))
 
+
+class EliminarGastoView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        gasto = get_object_or_404(Gasto, pk=pk)
+
+        if gasto.pagador != request.user and gasto.viaje.creador != request.user:
+            return JsonResponse({
+                'success': False,
+                'error': 'No tienes permiso para eliminar este gasto'
+            }, status=403)
+
+        viaje = gasto.viaje
+        participantes = viaje.colaboradores.all() | UsuarioPersonalizado.objects.filter(pk=viaje.creador.pk)
+        participantes = participantes.distinct().exclude(pk=request.user.pk)
+
+        mensaje = f"{request.user.username} eliminó un gasto de {gasto.cantidad}€ ({gasto.descripcion})"
+        enlace = reverse('viajes:detalles_viaje', kwargs={'pk': viaje.pk})
+        for participante in participantes:
+            Notificacion.objects.create(usuario=participante, mensaje=mensaje, tipo='GASTO', enlace_relacionado=enlace)
+
+        gasto.delete()
+
+        return JsonResponse({'success': True})
 
 class LikeToggleView(LoginRequiredMixin, View):
     def post(self, request, pk):
