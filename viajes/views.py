@@ -1,4 +1,6 @@
 import json
+import random
+import urllib.request, urllib.parse
 from collections import defaultdict
 from decimal import Decimal
 from django.contrib import messages
@@ -141,6 +143,13 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
 
         context['categorias'] = [g['categoria'] for g in gastos_por_categoria]
         context['cantidades'] = [float(g['total']) for g in gastos_por_categoria]
+
+        ciudad = viaje.destino.nombre
+        pais = viaje.destino.pais
+        try:
+            context['sugerencias'] = fetch_sugerencias_overpass(ciudad, pais)
+        except Exception:
+            context['sugerencias'] = []
 
         return context
 
@@ -622,3 +631,55 @@ class EliminarNotificacionView(LoginRequiredMixin, View):
         notificacion.delete()
 
         return JsonResponse({'success': True})
+
+def fetch_sugerencias_overpass(ciudad, pais, limite=5):
+    """
+    1. Usa Nominatim para obtener lat/lon de la ciudad.
+    2. Consulta Overpass buscando puntos de interés.
+    3. Elimina hostels, guest_houses, hoteles y sin nombre.
+    4. Devuelve lista de strings "Nombre (tipo)" aleatoria.
+    """
+    # Geocodificar con Nominatim (es el geocodificador de OpenStreetMap)
+    nominatim_url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + urllib.parse.quote(f"{ciudad}, {pais}")
+    with urllib.request.urlopen(nominatim_url) as resp:
+        results = json.loads(resp.read().decode())
+    if not results:
+        return []
+    lat = results[0]['lat']
+    lon = results[0]['lon']
+
+    # Query Overpass around 10km radius
+    query = f'''[out:json][timeout:25];
+    (
+      node["tourism"](around:10000,{lat},{lon});
+      way["tourism"](around:10000,{lat},{lon});
+      rel["tourism"](around:10000,{lat},{lon});
+    );
+    out center;'''
+    url = 'https://overpass-api.de/api/interpreter?data=' + urllib.parse.quote(query)
+    with urllib.request.urlopen(url) as response:
+        data = json.loads(response.read().decode())
+    elementos = data.get('elements', [])
+
+    # Filtro resultados: excluir tipos no deseados y sin nombre
+    excluir = {'hostel', 'guest_house', 'hotel', 'camp_site', 'apartment', 'caravan_site'}
+    filtrados = []
+    for el in elementos:
+        tags = el.get('tags', {})
+        tipo = tags.get('tourism')
+        nombre = tags.get('name')
+        if not nombre or tipo in excluir:
+            continue
+        filtrados.append(el)
+
+    # Mezclo y formato
+    random.shuffle(filtrados)
+    sugerencias = []
+    for el in filtrados[:limite]:
+        tags = el.get('tags', {})
+        nombre = tags.get('name')
+        tipo = tags.get('tourism', tags.get('historic', 'Desconocido'))
+        sugerencias.append(f"{nombre} ({tipo})")
+
+    return sugerencias
+

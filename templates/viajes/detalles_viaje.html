@@ -69,7 +69,7 @@
     background-color: #f8f9fa;
     }
 
-    /* Quick actions mejoradas */
+    /* Quick actions */
     .quick-action {
     transition: all 0.3s;
     border-radius: 8px;
@@ -97,7 +97,7 @@
 
         <!-- Navbar -->
         <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top"
-             style="background-color: #f8f9fa;">
+             style="background-color: #f8f9fa; z-index: 1030;">
             <div class="container-fluid">
                 <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
                     <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
@@ -184,20 +184,20 @@
         </nav>
 
         <!-- Quick Actions -->
-        <div class="container-fluid py-3 bg-light">
+        <div class="container-fluid py-3 bg-light sticky-top" style="z-index: 1020; top: 56px;">
             <div class="container">
-                <div class="row g-3">
-                    <div class="col-md-2 col-6">
+                <div class="row g-3 justify-content-center">
+                    <div class="col-md-auto col-6" style="min-width: 140px;">
                         <a href="{% url 'viajes:crear_viaje' %}"
-                           class="quick-action card text-center p-3 bg-white text-decoration-none">
+                           class="quick-action card text-center p-3 bg-white text-decoration-none h-100">
                             <div class="text-primary mb-2">
                                 <i class="fas fa-plus-circle fa-2x"></i>
                             </div>
                             <h6 class="mb-0 small fw-bold">Nuevo Viaje</h6>
                         </a>
                     </div>
-                    <div class="col-md-2 col-6">
-                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none"
+                    <div class="col-md-auto col-6" style="min-width: 140px;">
+                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
                            data-bs-toggle="modal"
                            data-bs-target="#agregarColaboradorModal">
                             <div class="text-primary mb-2">
@@ -206,16 +206,8 @@
                             <h6 class="mb-0 small fw-bold">Invitar Amigos</h6>
                         </a>
                     </div>
-                    <div class="col-md-2 col-6">
-                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none">
-                            <div class="text-primary mb-2">
-                                <i class="fas fa-file-invoice-dollar fa-2x"></i>
-                            </div>
-                            <h6 class="mb-0 small fw-bold">Presupuestos</h6>
-                        </a>
-                    </div>
-                    <div class="col-md-2 col-6">
-                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none"
+                    <div class="col-md-auto col-6" style="min-width: 140px;">
+                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
                            data-bs-toggle="modal"
                            data-bs-target="#agregarPagoModal">
                             <div class="text-primary mb-2">
@@ -224,8 +216,8 @@
                             <h6 class="mb-0 small fw-bold">Agregar Pago</h6>
                         </a>
                     </div>
-                    <div class="col-md-2 col-6">
-                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none"
+                    <div class="col-md-auto col-6" style="min-width: 140px;">
+                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
                            data-bs-toggle="modal"
                            data-bs-target="#deudasModal">
                             <div class="text-primary mb-2">
@@ -234,9 +226,9 @@
                             <h6 class="mb-0 small fw-bold">Deudas</h6>
                         </a>
                     </div>
-                    <div class="col-md-2 col-6">
-                        <a href="{% url 'viajes:inicio' %}"
-                           class="quick-action card text-center p-3 bg-white text-decoration-none">
+                    <div class="col-md-auto col-6" style="min-width: 140px;">
+                        <a href="{% url 'viajes:editar_viaje' viaje.pk %}"
+                           class="quick-action card text-center p-3 bg-white text-decoration-none h-100">
                             <div class="text-primary mb-2">
                                 <i class="fas fa-cog fa-2x"></i>
                             </div>
@@ -344,6 +336,16 @@
                                             <h6><i class="fas fa-crown text-warning me-2"></i>Creador</h6>
                                             <div class="d-flex align-items-center mb-3">
                                                 <img src="
+
+
+
+
+
+
+
+
+
+
                                                         {% if viaje.creador.foto_perfil %}{{ viaje.creador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                      class="rounded-circle me-3" width="40" height="40">
                                                 <span>{{ viaje.creador.username }}</span>
@@ -358,6 +360,12 @@
                                                         <div class="col-md-6 mb-3">
                                                             <div class="d-flex align-items-center">
                                                                 <img src="
+
+
+
+
+
+
 
                                                                         {% if colaborador.foto_perfil %}{{ colaborador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                                      class="rounded-circle me-3" width="40" height="40">
@@ -391,13 +399,14 @@
                     <div class="tab-pane fade" id="activities" role="tabpanel">
                         <div class="row">
                             <div class="col-md-8">
-                                <div class="info-card card mb-4">
+                                <div class="info-card card mb-4" id="actividades-pdf">
                                     <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Actividades Planificadas
                                         </h5>
                                         <div>
                                             {% if viaje.actividades.all %}
-                                                <button id="generarItinerarioBtn" class="btn btn-light btn-sm text-danger me-2">
+                                                <button id="generarItinerarioBtn"
+                                                        class="btn btn-light btn-sm text-danger me-2">
                                                     <i class="fas fa-file-pdf me-1"></i> Descargar PDF
                                                 </button>
                                             {% endif %}
@@ -473,14 +482,40 @@
                                 </div>
                             </div>
 
+                            <script>
+                                // Construimos un array con las actividades ordenadas
+                                const actividadesData = [
+                                    {% for actividad in viaje.actividades.all|dictsort:"fecha_hora" %}
+                                        {
+                                            fecha: '{{ actividad.fecha_hora|date:"d/m/Y H:i" }}',
+                                            titulo: '{{ actividad.titulo|escapejs }}',
+                                            descripcion: '{{ actividad.descripcion|default:"(sin descripción)"|escapejs }}'
+                                        }{% if not forloop.last %},{% endif %}
+                                    {% empty %}
+                                        // si no hay actividades, el array queda vacío
+                                    {% endfor %}
+                                ];
+                            </script>
+
+
                             <div class="col-md-4">
                                 <div class="info-card card mb-4">
                                     <div class="card-header card-header-custom">
                                         <h5 class="mb-0"><i class="fas fa-wand-magic-sparkles me-2"></i>Sugerencias</h5>
                                     </div>
                                     <div class="card-body">
-                                        <p class="text-muted">Próximamente: sugerencias de actividades basadas en tu
-                                            destino.</p>
+                                        {% if sugerencias %}
+                                            <ul class="list-group list-group-flush">
+                                                {% for s in sugerencias %}
+                                                    <li class="list-group-item">
+                                                        <i class="fas fa-map-pin text-danger me-3 mt-1"></i>
+                                                        <strong>{{ s }}</strong>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="text-muted">No hay sugerencias disponibles.</p>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -512,7 +547,6 @@
                                                             <td>
                                                                 <div class="d-flex align-items-center">
                                                                     <img src="
-
 
 
 
@@ -862,12 +896,32 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
                                                                 {% if u.foto_perfil %}{{ u.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                              class="rounded-circle me-2" width="30" height="30">
                                                     {% endif %}
                                                 {% endfor %}
                                                 {% if viaje.creador.id == deudor_id %}
                                                     <img src="
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1052,6 +1106,7 @@
                         this.textContent = 'Agregar';
                     }
                 });
+
 
                 // Registrar pago
                 document.getElementById('agregarPagoBtn').addEventListener('click', async function () {
@@ -1317,6 +1372,61 @@
                     document.body.style.paddingRight = '';
                     document.body.style.overflow = '';
                 }, 10);
+
+            });
+
+            document.getElementById('generarItinerarioBtn').addEventListener('click', () => {
+                if (actividadesData.length === 0) {
+                    showAlert('warning', 'No hay actividades para generar PDF.');
+                    return;
+                }
+
+                const {jsPDF} = window.jspdf;
+                const doc = new jsPDF({unit: 'pt', format: 'a4'});
+                const margin = 40;
+                const lineHeight = 14;
+                const pageHeight = doc.internal.pageSize.height;
+                let cursorY = margin;
+
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text(`Itinerario de viaje: {{ viaje.nombre }}`, margin, cursorY);
+                cursorY += lineHeight * 2;
+
+                doc.setFontSize(12);
+                actividadesData.forEach((act, idx) => {
+                    const textFecha = act.fecha;
+                    const textTitulo = `Nombre: ${act.titulo}`;
+                    const textDesc = `Descripción: ${act.descripcion}`;
+
+                    // Si nos pasamos de la página, agregar nueva
+                    if (cursorY + lineHeight * 3 > pageHeight - margin) {
+                        doc.addPage();
+                        cursorY = margin;
+                        doc.setFontSize(12);
+                    }
+
+                    doc.setFont(undefined, 'bold');
+                    doc.text(textFecha, margin, cursorY);
+                    cursorY += lineHeight;
+
+                    doc.setFont(undefined, 'normal');
+                    doc.text(textTitulo, margin + 10, cursorY);
+                    cursorY += lineHeight;
+
+                    // Para la descripción, cortamos en líneas si es muy larga
+                    const splitDesc = doc.splitTextToSize(textDesc, doc.internal.pageSize.width - margin * 2 - 10);
+                    doc.text(splitDesc, margin + 10, cursorY);
+                    cursorY += lineHeight * splitDesc.length + lineHeight;
+
+                    // Línea separadora
+                    doc.setDrawColor(200);
+                    doc.setLineWidth(0.5);
+                    doc.line(margin, cursorY, doc.internal.pageSize.width - margin, cursorY);
+                    cursorY += lineHeight;
+                });
+
+                doc.save(`Itinerario viaje {{ viaje.nombre }}.pdf`);
             });
         </script>
     {% endblock %}
