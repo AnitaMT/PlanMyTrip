@@ -1,18 +1,24 @@
 import json
 import random
+import requests
 import urllib.request, urllib.parse
 from collections import defaultdict
 from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q, Count
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, CreateView, DetailView, UpdateView, DeleteView, ListView
+from django.conf import settings
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from viajes.forms import RegistroUsuarioForm, CrearViajeForm, AgregarActividadForm, EditarViajeForm, FotoPerfilForm, \
     CambiarUsernameForm, CambiarPasswordForm
 from viajes.models import UsuarioPersonalizado, Viaje, Destino, Notificacion, Actividad, Gasto, DivisionGasto, MeGusta, \
@@ -102,7 +108,24 @@ class CrearViajeView(LoginRequiredMixin, CreateView):
         if created:
             messages.info(self.request, f"Se creó un nuevo destino: {destino.nombre}")
 
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': '¡Viaje creado correctamente!'
+            })
+
         return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            errors = {field: error[0] for field, error in form.errors.items()}
+            return JsonResponse({
+                'success': False,
+                'error': 'Error en el formulario',
+                'errors': errors
+            }, status=400)
+
+        return super().form_invalid(form)
 
 
 class DetallesViajeView(LoginRequiredMixin, DetailView):
@@ -113,7 +136,7 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         viaje = self.object
-        user = self.request.user
+        usuario = self.request.user
         deudas = calcular_deudas(self.request, viaje.id)
         deudas_resumen = {}
 
@@ -129,14 +152,15 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
         context['deudas'] = deudas_resumen
         context['deudas_detalladas'] = deudas
 
-        context['amigos'] = user.amigos.all()
-        context['es_creador'] = (viaje.creador == user)
+        context['amigos'] = usuario.amigos.all()
+        context['es_creador'] = (viaje.creador == usuario)
+        context['es_colaborador'] = usuario in viaje.colaboradores.all()
 
         context['deudas_agrupadas'] = obtener_deudas_agrupadas(viaje)
 
         context['deudas_detalladas'] = calcular_deudas(self.request, viaje.id)
 
-        me_gustas = user.me_gustas_dados.filter(actividad__viaje=viaje)
+        me_gustas = usuario.me_gustas_dados.filter(actividad__viaje=viaje)
         context['liked_actividades'] = [like.actividad.id for like in me_gustas]
 
         gastos_por_categoria = (Gasto.objects.filter(viaje=viaje).values('categoria').annotate(total=Sum('cantidad')))
@@ -144,12 +168,25 @@ class DetallesViajeView(LoginRequiredMixin, DetailView):
         context['categorias'] = [g['categoria'] for g in gastos_por_categoria]
         context['cantidades'] = [float(g['total']) for g in gastos_por_categoria]
 
+        context['notificaciones_sin_leer_count'] = Notificacion.objects.filter(usuario=usuario, leido=False).count()
+        context['ultimas_notificaciones'] = Notificacion.objects.filter(usuario=usuario).order_by('-fecha_creacion')[:5]
+        context['solicitudes_pendientes_count'] = (self.request.user.solicitudes_recibidas.filter(aceptada__isnull=True).count())
+
         ciudad = viaje.destino.nombre
         pais = viaje.destino.pais
+
         try:
-            context['sugerencias'] = fetch_sugerencias_overpass(ciudad, pais)
+            sugerencias_ia = fetch_sugerencias_gemini(ciudad, pais, limite=5)
         except Exception:
-            context['sugerencias'] = []
+            sugerencias_ia = []
+
+        if sugerencias_ia:
+            context['sugerencias'] = sugerencias_ia
+        else:
+            try:
+                context['sugerencias'] = fetch_sugerencias_overpass(ciudad, pais)
+            except Exception:
+                context['sugerencias'] = []
 
         return context
 
@@ -185,9 +222,13 @@ class EnviarSolicitudView(LoginRequiredMixin, View):
         if receptor == request.user:
             return redirect('viajes:lista_amigos')
 
-        solicitud, creada = SolicitudAmistad.objects.get_or_create(emisor=request.user, receptor=receptor)
+        solicitud_existente = SolicitudAmistad.objects.filter(emisor=request.user, receptor=receptor,aceptada__isnull=True).first()
 
-        if creada:
+        if not solicitud_existente:
+            SolicitudAmistad.objects.filter(emisor=request.user, receptor=receptor).delete()
+
+            solicitud = SolicitudAmistad.objects.create(emisor=request.user, receptor=receptor)
+
             mensaje = f'{request.user.username} te ha enviado solicitud de amistad.'
             enlace = reverse('viajes:solicitudes_recibidas')
             Notificacion.objects.create(usuario=receptor, mensaje=mensaje, tipo='SOLICITUD_AMISTAD', enlace_relacionado=enlace)
@@ -331,7 +372,25 @@ class AgregarActividadView(LoginRequiredMixin, CreateView):
             Notificacion.objects.create(usuario=u, mensaje=mensaje, tipo='ACTIVIDAD', enlace_relacionado=enlace)
 
         messages.success(self.request, 'Actividad agregada con éxito')
+
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': '¡Actividad creada correctamente!'
+            })
+
         return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            errors = {field: error[0] for field, error in form.errors.items()}
+            return JsonResponse({
+                'success': False,
+                'error': 'Error en el formulario',
+                'errors': errors
+            }, status=400)
+
+        return super().form_invalid(form)
 
     def get_success_url(self):
         return reverse('viajes:detalles_viaje', kwargs={'pk': self.kwargs.get('pk')})
@@ -522,18 +581,18 @@ class LikeToggleView(LoginRequiredMixin, View):
 
         like_obj, created = MeGusta.objects.get_or_create(actividad=actividad, usuario=usuario)
 
-        if created and actividad.creador != usuario:
+        if created:
             mensaje = f"A {usuario.username} le gustó tu actividad: {actividad.titulo}"
             enlace = reverse('viajes:detalles_actividad', kwargs={'pk': actividad.pk})
 
-            Notificacion.objects.create(usuario=actividad.creador, mensaje=mensaje, tipo='OTROS', enlace_relacionado=enlace)
+            if actividad.creador != usuario:
+                Notificacion.objects.create(usuario=actividad.creador, mensaje=mensaje, tipo='OTROS', enlace_relacionado=enlace)
 
             liked = True
         else:
             if not created:
                 like_obj.delete()
             liked = False
-
 
         total = actividad.me_gustas.count()
 
@@ -683,3 +742,278 @@ def fetch_sugerencias_overpass(ciudad, pais, limite=5):
 
     return sugerencias
 
+
+def fetch_sugerencias_gemini(ciudad, pais, limite=5):
+    api_key = settings.GEMINI_API_KEY or ""
+
+    if not api_key:
+        return []
+
+    prompt_text = (
+        f"Soy un asistente de viajes. Por favor, dame {limite} sugerencias "
+        f"de actividades turísticas o lugares interesantes para visitar en "
+        f"{ciudad}, {pais}. "
+        f"Incluye el nombre breve de cada lugar/actividad y una descripción muy corta."
+        f"Usa lenguaje cercano, en español castallano y no empieces la frase introductoria con ¡Claro!."
+    )
+
+    endpoint = "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-001:generateContent"
+
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+    }
+
+    body = {
+        "contents": [
+            {
+                "parts": [
+                    {
+                        "text": prompt_text
+                    }
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.8,
+            "maxOutputTokens": 256,
+            "topP": 0.95,
+            "topK": 40
+        }
+    }
+
+    params = {"key": api_key}
+
+    try:
+        respuesta = requests.post(endpoint, headers=headers, params=params, json=body, timeout=10)
+        data = respuesta.json()
+
+        try:
+            contenido = data["candidates"][0]["content"]["parts"][0]["text"]
+        except (KeyError, IndexError):
+            return []
+
+        if not contenido:
+            return []
+
+        lineas = [linea.strip() for linea in contenido.split("\n") if linea.strip()]
+        sugerencias = []
+        for linea in lineas:
+            if len(linea) > 2 and linea[0].isdigit() and (linea[1] in [".", ")", "-"]):
+                texto = linea[2:].strip()
+            elif len(linea) > 3 and linea[:2].isdigit() and (linea[2] in [".", ")", "-"]):
+                texto = linea[3:].strip()
+            else:
+                texto = linea
+
+            if texto.startswith("**") and "**" in texto[2:]:
+                texto = texto[2:]
+                texto = texto.replace("**", "", 1)
+
+            if ':' in texto:
+                titulo, descripcion = texto.split(':', 1)
+                texto_formateado = f"<strong style='color:#0d6efd;'>{titulo.strip()}:</strong>{descripcion}"
+            else:
+                texto_formateado = texto
+
+            if texto:
+                sugerencias.append(texto_formateado)
+
+        return sugerencias[:limite]
+
+    except requests.RequestException as e:
+        return []
+
+@csrf_exempt
+def asistente_ayuda(request):
+    if request.method != 'POST':
+        return JsonResponse({'respuesta': 'Método no permitido.'}, status=405)
+
+    datos = json.loads(request.body)
+    mensaje = datos.get('mensaje', '').strip()
+    if not mensaje:
+        return JsonResponse({'respuesta': '¿Podrías escribir una pregunta?'})
+
+    historial = request.session.get('historial_ayuda', [])
+
+    historial.append({'role': 'user', 'text': mensaje})
+
+    respuesta = obtener_respuesta_gemini(historial)
+
+    historial.append({'role': 'model', 'text': respuesta})
+
+    request.session['historial_ayuda'] = historial
+    print('Historial de ayuda: {}'.format(historial))
+    print('Respuesta de ayuda: {}'.format(respuesta))
+
+    return JsonResponse({'respuesta': respuesta})
+
+def obtener_respuesta_gemini(historial):
+    api_key = settings.GEMINI_API_KEY
+    if not api_key:
+        return "No se ha configurado la API de Gemini."
+
+    url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent"
+    headers = {"Content-Type": "application/json"}
+    params = {"key": api_key}
+
+    contents = [{
+        "role": h["role"],
+        "parts": [{"text": h["text"]}]
+    } for h in historial]
+
+    if not any(msg["role"] == "model" for msg in historial):
+        system_prompt = {
+            "role": "user",
+            "parts": [{
+                "text": (
+                    "Te llamas TravesIA, perteneces a la aplicación PlanMyTrip. Eres un asistente muy simpáticon que ayuda a los usuarios con dudas sobre la aplicación PlanMyTrip.\n"
+                    "PlanMyTrip permite crear viajes en grupo, enviar solicitudes de amistad, dar likes a actividades y viajes, crear itinerarios "
+                    "y gestionar gastos compartidos de forma equitativa \n"
+                    "Cuando te pregunten por destinos o presupuesto, sugiere tres opciones concretas y coherentes según preferencias y presupuesto. "
+                    "Responde de manera muy breve, responde un texto de como máximo dos líneas, con emojis, muy agradable, amigable y claro."
+                    "Nunca dejes una respuesta incompleta. Si tu máximo es de 100 output tokens, ajusta siempre la respuesta a ese tamaño para que esté completa."
+                )
+            }]
+        }
+        contents.insert(0, system_prompt)
+
+    body = {
+        "contents": contents,
+        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 100}
+    }
+
+    try:
+        resp = requests.post(url, headers=headers, params=params, json=body, timeout=10)
+        data = resp.json()
+        print("Respuesta cruda de Gemini:", data)
+        respuesta =  data['candidates'][0]['content']['parts'][0]['text'].strip()
+        return respuesta.replace('*', '')
+    except Exception as e:
+        print("Error al llamar a Gemini:", e)
+        return "Hubo un problema al contactar con el asistente."
+
+
+PAISES_EUROPEOS = [
+    'España', 'Francia', 'Alemania', 'Italia', 'Portugal',
+    'Reino Unido', 'Países Bajos', 'Bélgica', 'Grecia',
+    'Suecia', 'Noruega', 'Dinamarca', 'Polonia', 'Austria',
+    'Suiza', 'Irlanda', 'Finlandia', 'Hungría', 'República Checa',
+]
+
+class ViajesPublicosView(LoginRequiredMixin, ListView):
+    model = Viaje
+    template_name = 'viajes/viajes_publicos.html'
+    context_object_name = 'viajes'
+    paginate_by = 12
+
+    def get_queryset(self):
+        qs = Viaje.objects.filter(visibilidad='PUBLICO')
+        termino = self.request.GET.get('destino', '').strip()
+
+        if termino:
+            qs = qs.filter(
+                Q(destino__nombre__icontains=termino) |
+                Q(destino__pais__icontains=termino)
+            )
+        else:
+            if self.request.GET.get('continente') == 'europa':
+                qs = qs.filter(destino__pais__in=PAISES_EUROPEOS)
+            elif self.request.GET.get('continente') == 'otros':
+                qs = qs.exclude(destino__pais__in=PAISES_EUROPEOS)
+
+        if self.request.GET.get('grupos_reducidos') == '1':
+            qs = qs.annotate(num_colaboradores=Count('colaboradores')).filter(num_colaboradores__lte=3)
+
+        orden = self.request.GET.get('orden')
+
+        if orden == 'fecha_viaje':
+            qs = qs.order_by('fecha_inicio')
+        elif orden == 'populares':
+            qs = qs.annotate(num_likes=Count('me_gustas_viaje')).order_by('-num_likes')
+        elif orden == 'alfabetico':
+            qs = qs.order_by('nombre')
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        viajes = context['viajes']
+        usuario = self.request.user
+        context['orden'] = self.request.GET.get('orden', '')
+
+        liked_qs = MeGusta.objects.filter(usuario=usuario, viaje__isnull=False) \
+            .values_list('viaje_id', flat=True)
+        context['liked_viajes_ids'] = set(liked_qs)
+
+        for viaje in viajes:
+            num_participantes = 1 + viaje.colaboradores.count()
+
+            resultado_act = viaje.actividades.aggregate(total_act=Sum('coste_estimado'))
+            total_act = resultado_act['total_act'] or Decimal('0.00')
+
+            resultado_gas = Gasto.objects.filter(viaje=viaje).aggregate(total_gas=Sum('cantidad'))
+            total_gas = resultado_gas['total_gas'] or Decimal('0.00')
+
+            if num_participantes > 0:
+                gasto_por_persona = total_gas / num_participantes
+            else:
+                gasto_por_persona = Decimal('0.00')
+
+            presupuesto = total_act + gasto_por_persona
+            viaje.presupuesto_estimado_por_persona = presupuesto.quantize(Decimal('0.01'))
+
+        context['filtro_destino'] = self.request.GET.get('destino', '').strip()
+        context['filtro_continente'] = self.request.GET.get('continente', '')
+        context['filtro_grupos_reducidos'] = self.request.GET.get('grupos_reducidos', '')
+
+        return context
+
+class ToggleLikeViajeView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        viaje = get_object_or_404(Viaje, pk=pk)
+        usuario = request.user
+
+        like_obj, created = MeGusta.objects.get_or_create(usuario=usuario, viaje=viaje, defaults={'actividad': None})
+
+        if created:
+            if viaje.creador != usuario:
+                mensaje = f"A {usuario.username} le gustó tu viaje: {viaje.nombre}"
+                enlace = reverse('viajes:detalles_viaje', kwargs={'pk': viaje.pk})
+                Notificacion.objects.create(usuario=viaje.creador, mensaje=mensaje, tipo='OTROS', enlace_relacionado=enlace)
+            liked = True
+        else:
+            like_obj.delete()
+            liked = False
+
+        total = viaje.me_gustas_viaje.count()
+        return JsonResponse({'liked': liked, 'count': total})
+
+class ViajeLikesView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        viaje = get_object_or_404(Viaje, pk=pk)
+        usuarios = viaje.me_gustas_viaje.select_related('usuario').all()
+        data = {
+            'usuarios': [
+                {
+                    'username': mg.usuario.username,
+                    'foto_perfil': mg.usuario.foto_perfil.url if mg.usuario.foto_perfil else None
+                }
+                for mg in usuarios
+            ]
+        }
+        return JsonResponse(data)
+
+class GastosPorCategoriaAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, viaje_id):
+        viaje = get_object_or_404(Viaje, pk=viaje_id)
+        gastos = (Gasto.objects.filter(viaje=viaje).values('categoria').annotate(total=Sum('cantidad')).order_by('categoria'))
+        data = {
+            "viaje_id": viaje.id,
+            "totales_por_categoria": [
+                { "categoria": g['categoria'], "total": float(g['total']) }
+                for g in gastos
+            ]
+        }
+        return Response(data)

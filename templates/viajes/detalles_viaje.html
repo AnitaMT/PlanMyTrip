@@ -96,51 +96,65 @@
         {% endif %}
 
         <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top"
-             style="background-color: #f8f9fa; z-index: 1030;">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" style="z-index: 1030;">
             <div class="container-fluid">
                 <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
-                    <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
-                    <span class="brand-text">PlanMyTrip</span>
+                    <img src="{% static 'imagenes/logo.png' %}" width="45" height="45" alt="logo"
+                         class="me-2 rounded-circle">
+                    <span class="brand-text fs-4">PlanMyTrip</span>
                 </a>
 
                 <div class="d-flex align-items-center ms-auto">
-                    <!-- Notificaciones con tooltip -->
+                    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                        <ul class="navbar-nav me-4">
+                            <li class="nav-item mx-2">
+                                <a class="nav-link" href="{% url 'viajes:inicio' %}" style="color: #495057;">Página
+                                    Principal</a>
+                            </li>
+                            <li class="nav-item mx-2">
+                                <a class="nav-link" href="{% url 'viajes:viajes_publicos' %}" style="color: #495057;">Ideas
+                                    de Viajes</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Notificaciones -->
                     <div class="dropdown me-3">
-                        <a href="#" class="position-relative text-dark" data-bs-toggle="dropdown" aria-expanded="false"
-                           data-bs-toggle="tooltip" title="Notificaciones">
-                            <i class="fas fa-bell fs-5"></i>
+                        <a href="#" class="position-relative text-dark btn btn-outline-light rounded-circle p-2"
+                           data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip"
+                           title="Notificaciones">
+                            <i class="fas fa-bell"></i>
                             {% if notificaciones_sin_leer_count > 0 %}
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse">
-                                {{ notificaciones_sin_leer_count }}
-                            </span>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ notificaciones_sin_leer_count }}
+                        </span>
                             {% endif %}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
-                            <li class="dropdown-header">Notificaciones recientes</li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0"
+                            style="border-radius: 12px; z-index: 1050;">
+                            <li class="dropdown-header text-primary fw-bold">Notificaciones recientes</li>
                             {% for notificacion in ultimas_notificaciones %}
                                 {% if notificacion.leido == False %}
                                     <li>
-                                        <a class="dropdown-item d-flex justify-content-between align-items-start"
+                                        <a class="dropdown-item d-flex justify-content-between align-items-start py-2"
                                            href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
                                             <div>
                                                 <div class="notification-text">{{ notificacion.mensaje }}</div>
                                                 <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
                                             </div>
-                                            <span class="badge bg-primary">nuevo</span>
+                                            <span class="badge bg-primary rounded-pill">nuevo</span>
                                         </a>
                                     </li>
                                 {% endif %}
                             {% empty %}
-                                {#<li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
+                                <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             {% endfor %}
-                            <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
                                 <a href="{% url 'viajes:notificaciones' %}"
-                                   class="dropdown-item text-center text-primary">
+                                   class="dropdown-item text-center text-primary fw-bold">
                                     Ver todas
                                 </a>
                             </li>
@@ -149,30 +163,28 @@
 
                     <!-- Menú de usuario -->
                     <div class="dropdown">
-                        <a href="#"
-                           class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle user-dropdown"
+                        <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="avatar-container me-2">
-                                <img src="
-                                        {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
-                                     alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
-                            </div>
-                            <div class="user-info d-none d-md-block">
-                                <strong>{{ user.username }}</strong>
+                            <img src="
+                                    {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                 alt="Foto de perfil" width="40" height="40" class="rounded-circle me-2 avatar-glow">
+                            <div class="d-none d-md-block">
+                                <strong class="text-dark">{{ user.username }}</strong>
                             </div>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{% url 'viajes:ajustes_usuario' %}"><i
-                                    class="fas fa-user-cog me-2"></i>Ajustes</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a>
-                            </li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0"
+                            style="border-radius: 12px; z-index: 1050;">
+                            <li><a class="dropdown-item py-2" href="{% url 'viajes:ajustes_usuario' %}">
+                                <i class="fas fa-user-cog me-2 text-primary"></i>Ajustes</a></li>
+                            <li><a class="dropdown-item py-2" href="#">
+                                <i class="fas fa-question-circle me-2 text-primary"></i>Ayuda</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
                                 <form action="{% url 'viajes:logout' %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="dropdown-item logout-btn">
+                                    <button type="submit" class="dropdown-item py-2 text-danger">
                                         <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
                                     </button>
                                 </form>
@@ -183,61 +195,65 @@
             </div>
         </nav>
 
-        <!-- Quick Actions -->
-        <div class="container-fluid py-3 bg-light sticky-top" style="z-index: 1020; top: 56px;">
-            <div class="container">
-                <div class="row g-3 justify-content-center">
-                    <div class="col-md-auto col-6" style="min-width: 140px;">
-                        <a href="{% url 'viajes:crear_viaje' %}"
-                           class="quick-action card text-center p-3 bg-white text-decoration-none h-100">
-                            <div class="text-primary mb-2">
-                                <i class="fas fa-plus-circle fa-2x"></i>
-                            </div>
-                            <h6 class="mb-0 small fw-bold">Nuevo Viaje</h6>
-                        </a>
-                    </div>
-                    <div class="col-md-auto col-6" style="min-width: 140px;">
-                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
-                           data-bs-toggle="modal"
-                           data-bs-target="#agregarColaboradorModal">
-                            <div class="text-primary mb-2">
-                                <i class="fas fa-users fa-2x"></i>
-                            </div>
-                            <h6 class="mb-0 small fw-bold">Invitar Amigos</h6>
-                        </a>
-                    </div>
-                    <div class="col-md-auto col-6" style="min-width: 140px;">
-                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
-                           data-bs-toggle="modal"
-                           data-bs-target="#agregarPagoModal">
-                            <div class="text-primary mb-2">
-                                <i class="fas fa-money-bill-wave fa-2x"></i>
-                            </div>
-                            <h6 class="mb-0 small fw-bold">Agregar Pago</h6>
-                        </a>
-                    </div>
-                    <div class="col-md-auto col-6" style="min-width: 140px;">
-                        <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
-                           data-bs-toggle="modal"
-                           data-bs-target="#deudasModal">
-                            <div class="text-primary mb-2">
-                                <i class="fas fa-balance-scale fa-2x"></i>
-                            </div>
-                            <h6 class="mb-0 small fw-bold">Deudas</h6>
-                        </a>
-                    </div>
-                    <div class="col-md-auto col-6" style="min-width: 140px;">
-                        <a href="{% url 'viajes:editar_viaje' viaje.pk %}"
-                           class="quick-action card text-center p-3 bg-white text-decoration-none h-100">
-                            <div class="text-primary mb-2">
-                                <i class="fas fa-cog fa-2x"></i>
-                            </div>
-                            <h6 class="mb-0 small fw-bold">Ajustes</h6>
-                        </a>
+        {% if es_colaborador or es_creador %}
+            <!-- Quick Actions -->
+            <div class="container-fluid py-3 bg-light sticky-top" style="z-index: 1020; top: 56px;">
+                <div class="container">
+                    <div class="row g-3 justify-content-center">
+                        <div class="col-md-auto col-6" style="min-width: 140px;">
+                            <a href="{% url 'viajes:crear_viaje' %}"
+                               class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
+                               data-bs-toggle="modal"
+                               data-bs-target="#crearViajeModal">
+                                <div class="text-primary mb-2">
+                                    <i class="fas fa-plus-circle fa-2x"></i>
+                                </div>
+                                <h6 class="mb-0 small fw-bold">Nuevo Viaje</h6>
+                            </a>
+                        </div>
+                        <div class="col-md-auto col-6" style="min-width: 140px;">
+                            <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
+                               data-bs-toggle="modal"
+                               data-bs-target="#agregarColaboradorModal">
+                                <div class="text-primary mb-2">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                                <h6 class="mb-0 small fw-bold">Invitar Amigos</h6>
+                            </a>
+                        </div>
+                        <div class="col-md-auto col-6" style="min-width: 140px;">
+                            <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
+                               data-bs-toggle="modal"
+                               data-bs-target="#agregarPagoModal">
+                                <div class="text-primary mb-2">
+                                    <i class="fas fa-money-bill-wave fa-2x"></i>
+                                </div>
+                                <h6 class="mb-0 small fw-bold">Agregar Pago</h6>
+                            </a>
+                        </div>
+                        <div class="col-md-auto col-6" style="min-width: 140px;">
+                            <a href="#" class="quick-action card text-center p-3 bg-white text-decoration-none h-100"
+                               data-bs-toggle="modal"
+                               data-bs-target="#deudasModal">
+                                <div class="text-primary mb-2">
+                                    <i class="fas fa-balance-scale fa-2x"></i>
+                                </div>
+                                <h6 class="mb-0 small fw-bold">Deudas</h6>
+                            </a>
+                        </div>
+                        <div class="col-md-auto col-6" style="min-width: 140px;">
+                            <a href="{% url 'viajes:editar_viaje' viaje.pk %}"
+                               class="quick-action card text-center p-3 bg-white text-decoration-none h-100">
+                                <div class="text-primary mb-2">
+                                    <i class="fas fa-cog fa-2x"></i>
+                                </div>
+                                <h6 class="mb-0 small fw-bold">Ajustes</h6>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
 
         <main class="flex-grow-1 py-4">
             <div class="container">
@@ -340,12 +356,6 @@
 
 
 
-
-
-
-
-
-
                                                         {% if viaje.creador.foto_perfil %}{{ viaje.creador.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                      class="rounded-circle me-3" width="40" height="40">
                                                 <span>{{ viaje.creador.username }}</span>
@@ -360,9 +370,6 @@
                                                         <div class="col-md-6 mb-3">
                                                             <div class="d-flex align-items-center">
                                                                 <img src="
-
-
-
 
 
 
@@ -398,6 +405,7 @@
                     <!-- Pestaña de Actividades -->
                     <div class="tab-pane fade" id="activities" role="tabpanel">
                         <div class="row">
+                            <!-- Columna de Actividades Planificadas -->
                             <div class="col-md-8">
                                 <div class="info-card card mb-4" id="actividades-pdf">
                                     <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
@@ -410,13 +418,24 @@
                                                     <i class="fas fa-file-pdf me-1"></i> Descargar PDF
                                                 </button>
                                             {% endif %}
-                                            <a href="{% url 'viajes:agregar_actividad' viaje.pk %}"
-                                               class="btn btn-light btn-sm">
-                                                <i class="fas fa-plus me-1"></i> Añadir
-                                            </a>
+                                            {% if es_creador or es_colaborador %}
+                                                <a href="{% url 'viajes:agregar_actividad' viaje.pk %}"
+                                                   class="btn btn-light btn-sm"
+                                                   data-bs-toggle="modal"
+                                                   data-bs-target="#agregarActividadModal">
+                                                    <i class="fas fa-plus me-1"></i> Añadir
+                                                </a>
+                                            {% else %}
+                                                <a href="{% url 'viajes:agregar_actividad' viaje.pk %}"
+                                                   class="btn btn-light btn-sm disabled"
+                                                   data-bs-toggle="modal"
+                                                   data-bs-target="#agregarActividadModal">
+                                                    <i class="fas fa-plus me-1"></i> Añadir
+                                                </a>
+                                            {% endif %}
                                         </div>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
                                         {% if viaje.actividades.all %}
                                             <div class="list-group list-group-flush">
                                                 {% for actividad in viaje.actividades.all %}
@@ -429,8 +448,8 @@
                                                                         {{ actividad.titulo }}
                                                                     </a>
                                                                     <span class="badge priority-badge {% if actividad.prioridad == 'ALTA' %}bg-danger{% elif actividad.prioridad == 'MEDIA' %}bg-warning text-dark{% else %}bg-success{% endif %}">
-                                                                {{ actividad.get_prioridad_display }}
-                                                            </span>
+                                                    {{ actividad.get_prioridad_display }}
+                                                </span>
                                                                 </div>
                                                                 <div class="d-flex align-items-center text-muted small">
                                                                     <i class="fas fa-calendar-alt me-1"></i>
@@ -472,55 +491,109 @@
                                             <div class="text-center py-4">
                                                 <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
                                                 <h5 class="text-muted">No hay actividades planificadas</h5>
-                                                <a href="{% url 'viajes:agregar_actividad' viaje.pk %}"
-                                                   class="btn btn-primary mt-3">
-                                                    <i class="fas fa-plus-circle me-1"></i> Crear primera actividad
-                                                </a>
+                                                {% if es_creador or es_colaborador %}
+                                                    <a href="{% url 'viajes:agregar_actividad' viaje.pk %}"
+                                                       class="btn btn-primary mt-3">
+                                                        <i class="fas fa-plus-circle me-1"></i> Crear primera actividad
+                                                    </a>
+                                                {% else %}
+                                                    <a href="{% url 'viajes:agregar_actividad' viaje.pk %}"
+                                                       class="btn btn-primary mt-3 disabled">
+                                                        <i class="fas fa-plus-circle me-1"></i> Crear primera actividad
+                                                    </a>
+                                                {% endif %}
                                             </div>
                                         {% endif %}
                                     </div>
                                 </div>
                             </div>
 
-                            <script>
-                                // Construimos un array con las actividades ordenadas
-                                const actividadesData = [
-                                    {% for actividad in viaje.actividades.all|dictsort:"fecha_hora" %}
-                                        {
-                                            fecha: '{{ actividad.fecha_hora|date:"d/m/Y H:i" }}',
-                                            titulo: '{{ actividad.titulo|escapejs }}',
-                                            descripcion: '{{ actividad.descripcion|default:"(sin descripción)"|escapejs }}'
-                                        }{% if not forloop.last %},{% endif %}
-                                    {% empty %}
-                                        // si no hay actividades, el array queda vacío
-                                    {% endfor %}
-                                ];
-                            </script>
-
-
+                            <!-- Columna de Sugerencias -->
                             <div class="col-md-4">
                                 <div class="info-card card mb-4">
-                                    <div class="card-header card-header-custom">
-                                        <h5 class="mb-0"><i class="fas fa-wand-magic-sparkles me-2"></i>Sugerencias</h5>
+                                    <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-wand-magic-sparkles me-2"></i>Sugerencias
+                                        </h5>
+                                        {# <button id="recargar-sugerencias" class="btn btn-sm btn-outline-light"#}
+                                        {# title="Recargar sugerencias">#}
+                                        {# <i class="fas fa-rotate-right "></i>#}
+                                        {# </button>#}
+                                        <a href="{% url 'viajes:detalles_viaje' viaje.pk %}" id="recargar-sugerencias" class="btn btn-sm btn-outline-light"
+                                           title="Recargar sugerencias">
+                                            <i class="fas fa-rotate-right"></i>
+                                        </a>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
                                         {% if sugerencias %}
-                                            <ul class="list-group list-group-flush">
-                                                {% for s in sugerencias %}
-                                                    <li class="list-group-item">
-                                                        <i class="fas fa-map-pin text-danger me-3 mt-1"></i>
-                                                        <strong>{{ s }}</strong>
-                                                    </li>
+                                            <div class="list-group list-group-flush">
+                                                <!-- Primera sugerencia (introductoria) -->
+                                                <div class="list-group-item py-3 bg-light text-center text-primary">
+                                                    <p class="mb-0">{{ sugerencias.0|safe }}</p>
+                                                </div>
+
+                                                <!-- Sugerencias de actividades -->
+                                                {% for s in sugerencias|slice:"1:" %}
+                                                    <div class="list-group-item py-3">
+                                                        <div class="d-flex justify-content-between align-items-start">
+                                                            <div class="d-flex align-items-start">
+                                                                <i class="fas fa-map-pin text-danger mt-1 me-3"></i>
+                                                                <div>
+                                                                    {{ s|safe }}
+                                                                </div>
+                                                            </div>
+                                                            {% if es_creador or es_colaborador %}
+                                                                <button class="btn btn-sm btn-outline-primary agregar-sugerencia"
+                                                                        data-sugerencia="{{ s|striptags }}"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#agregarActividadModal"
+                                                                        title="Añadir como actividad">
+                                                                    <i class="fas fa-plus"></i>
+                                                                </button>
+                                                            {% else %}
+                                                                <button class="btn btn-sm btn-outline-primary agregar-sugerencia"
+                                                                        data-sugerencia="{{ s }}"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#agregarActividadModal"
+                                                                        data-titulo="{{ s }}"
+                                                                        title="Añadir como actividad" disabled>
+                                                                    <i class="fas fa-plus"></i>
+                                                                </button>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
                                                 {% endfor %}
-                                            </ul>
+                                            </div>
                                         {% else %}
-                                            <p class="text-muted">No hay sugerencias disponibles.</p>
+                                            <p class="text-muted p-3">No hay sugerencias disponibles.</p>
                                         {% endif %}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <script>
+                        const actividadesData = [
+                            {% for actividad in viaje.actividades.all|dictsort:"fecha_hora" %}
+                                {
+                                    fecha: '{{ actividad.fecha_hora|date:"d/m/Y H:i" }}',
+                                    titulo: '{{ actividad.titulo|escapejs }}',
+                                    descripcion: '{{ actividad.descripcion|default:"(sin descripción)"|escapejs }}'
+                                }{% if not forloop.last %},{% endif %}
+                            {% empty %}
+                                // si no hay actividades, el array queda vacío
+                            {% endfor %}
+                        ];
+
+                        $(document).ready(function () {
+                            $('.agregar-sugerencia').click(function () {
+                                const titulo = $(this).data('titulo');
+                                $('#id_titulo').val(titulo);
+                                $('#id_descripcion').val(titulo);
+                            });
+                        });
+                    </script>
 
                     <!-- Pestaña de Gastos -->
                     <div class="tab-pane fade" id="expenses" role="tabpanel">
@@ -550,6 +623,7 @@
 
 
 
+
                                                                             {% if usuario.foto_perfil %}{{ usuario.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                                          class="rounded-circle me-2" width="30"
                                                                          height="30">
@@ -564,14 +638,25 @@
                                             </div>
 
                                             <div class="d-flex justify-content-between mt-4">
-                                                <a href="{% url 'viajes:lista_gastos' viaje.pk %}"
-                                                   class="btn btn-outline-secondary">
-                                                    <i class="fas fa-list me-1"></i> Ver todos los gastos
-                                                </a>
-                                                <button class="btn btn-primary" data-bs-toggle="modal"
-                                                        data-bs-target="#agregarPagoModal">
-                                                    <i class="fas fa-money-bill-wave me-1"></i> Agregar Pago
-                                                </button>
+                                                {% if es_colaborador or es_creador %}
+                                                    <a href="{% url 'viajes:lista_gastos' viaje.pk %}"
+                                                       class="btn btn-outline-secondary">
+                                                        <i class="fas fa-list me-1"></i> Ver todos los gastos
+                                                    </a>
+                                                    <button class="btn btn-primary" data-bs-toggle="modal"
+                                                            data-bs-target="#agregarPagoModal">
+                                                        <i class="fas fa-money-bill-wave me-1"></i> Agregar Pago
+                                                    </button>
+                                                {% else %}
+                                                    <a href="{% url 'viajes:lista_gastos' viaje.pk %}"
+                                                       class="btn btn-outline-secondary disabled">
+                                                        <i class="fas fa-list me-1"></i> Ver todos los gastos
+                                                    </a>
+                                                    <button class="btn btn-primary" data-bs-toggle="modal"
+                                                            data-bs-target="#agregarPagoModal" disabled>
+                                                        <i class="fas fa-money-bill-wave me-1"></i> Agregar Pago
+                                                    </button>
+                                                {% endif %}
                                             </div>
                                         {% else %}
                                             <div class="text-center py-4">
@@ -659,18 +744,19 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Botones de acción -->
-                <div class="d-flex justify-content-between mt-4">
-                    <a href="{% url 'viajes:inicio' %}" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left me-1"></i> Volver al inicio
-                    </a>
-                    <div>
-                        <a href="{% url 'viajes:editar_viaje' viaje.pk %}" class="btn btn-primary me-2">
-                            <i class="fas fa-edit me-1"></i> Editar viaje
+                {% if es_creador or es_colaborador %}
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'viajes:inicio' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i> Volver al inicio
                         </a>
+                        <div>
+                            <a href="{% url 'viajes:editar_viaje' viaje.pk %}" class="btn btn-primary me-2">
+                                <i class="fas fa-edit me-1"></i> Editar viaje
+                            </a>
+                        </div>
                     </div>
-                </div>
+                {% endif %}
             </div>
         </main>
 
@@ -840,7 +926,7 @@
                                                        name="participantes" value="{{ viaje.creador.id }}"
                                                        id="participante_creador" checked>
                                                 <label class="form-check-label" for="participante_creador">
-                                                    {{ viaje.creador.username }} (Tú)
+                                                    {{ viaje.creador.username }}
                                                 </label>
                                             </div>
                                             {% for colaborador in viaje.colaboradores.all %}
@@ -897,30 +983,12 @@
 
 
 
-
-
-
-
-
-
-
-
-
                                                                 {% if u.foto_perfil %}{{ u.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                              class="rounded-circle me-2" width="30" height="30">
                                                     {% endif %}
                                                 {% endfor %}
                                                 {% if viaje.creador.id == deudor_id %}
                                                     <img src="
-
-
-
-
-
-
-
-
-
 
 
 
@@ -972,6 +1040,143 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal para crear viaje -->
+        <div class="modal fade" id="crearViajeModal" tabindex="-1" aria-labelledby="crearViajeModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="crearViajeModalLabel">Crear Nuevo Viaje</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="crearViajeForm" method="post" action="{% url 'viajes:crear_viaje' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="id_nombre" class="form-label">Nombre del Viaje</label>
+                                <input type="text" class="form-control" id="id_nombre" name="nombre" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_destino_nombre" class="form-label">Destino (ej: Cancún, México)</label>
+                                <input type="text" class="form-control" id="id_destino_nombre" name="destino_nombre"
+                                       required>
+                                <div class="form-text">Escribe el nombre del destino y el país separados por coma</div>
+                            </div>
+                            <label for="id_categoria_destino" class="form-label">Tipo de destino</label>
+                            <select class="form-select" id="id_categoria_destino" name="categoria_destino" required>
+                                <option value="">Selecciona un tipo</option>
+                                <option value="PLAYA">Playa</option>
+                                <option value="CIUDAD">Ciudad</option>
+                                <option value="MONTAÑA">Montaña</option>
+                                <option value="RURAL">Rural</option>
+                                <option value="CULTURAL">Cultural</option>
+                            </select>
+                            <div class="mb-3">
+                                <label for="id_fecha_inicio" class="form-label">Fecha de inicio</label>
+                                <input type="date" class="form-control" id="id_fecha_inicio" name="fecha_inicio"
+                                       required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_fecha_fin" class="form-label">Fecha de fin</label>
+                                <input type="date" class="form-control" id="id_fecha_fin" name="fecha_fin" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="submitViajeForm">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para agregar actividad -->
+        <div class="modal fade" id="agregarActividadModal" tabindex="-1"
+             aria-labelledby="agregarActividadModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="agregarActividadModalLabel">Nueva Actividad</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form-agregar-actividad"
+                              method="post"
+                              action="{% url 'viajes:agregar_actividad' viaje.pk %}">
+                            {% csrf_token %}
+                            <div id="actividad-errors" class="alert alert-danger d-none"></div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_titulo" class="form-label">Título</label>
+                                        <input type="text" class="form-control" id="id_titulo" name="titulo" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_categoria" class="form-label">Categoría</label>
+                                        <select class="form-select" id="id_categoria" name="categoria" required>
+                                            <option value="GASTRONOMIA">Gastronomía</option>
+                                            <option value="CULTURAL">Cultural</option>
+                                            <option value="AVENTURA">Aventura</option>
+                                            <option value="RELAX">Relax</option>
+                                            <option value="OTROS" selected>Otros</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_fecha_hora" class="form-label">Fecha y hora</label>
+                                        <input type="datetime-local" class="form-control" id="id_fecha_hora"
+                                               name="fecha_hora" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_prioridad" class="form-label">Prioridad</label>
+                                        <select class="form-select" id="id_prioridad" name="prioridad" required>
+                                            <option value="BAJA">Baja</option>
+                                            <option value="MEDIA" selected>Media</option>
+                                            <option value="ALTA">Alta</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_ubicacion" class="form-label">Ubicación</label>
+                                        <input type="text" class="form-control" id="id_ubicacion" name="ubicacion">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_coste_estimado" class="form-label">Coste estimado</label>
+                                        <input type="number" step="0.01" min="0" class="form-control"
+                                               id="id_coste_estimado" name="coste_estimado">
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="id_descripcion" class="form-label">Descripción</label>
+                                        <textarea class="form-control" rows="3"
+                                                  id="id_descripcion" name="descripcion"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="submitActividadForm">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         </main>
 
     </div>
@@ -1286,6 +1491,196 @@
                             document.getElementById('map').innerHTML = '<p class="text-danger">No se pudo cargar el mapa.</p>';
                         });
                 }
+
+                // Modal para crear viaje rápido
+                const crearViajeBtn = document.getElementById('submitViajeForm');
+                if (crearViajeBtn) {
+                    crearViajeBtn.addEventListener('click', async function (e) {
+                        e.preventDefault();
+                        const form = document.getElementById('crearViajeForm');
+                        const formData = new FormData(form);
+
+                        // Validación básica de fechas
+                        const fechaInicio = new Date(formData.get('fecha_inicio'));
+                        const fechaFin = new Date(formData.get('fecha_fin'));
+
+                        if (fechaFin < fechaInicio) {
+                            showAlert('danger', 'La fecha de fin no puede ser anterior a la fecha de inicio');
+                            return;
+                        }
+
+                        // Estado de carga
+                        this.disabled = true;
+                        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+
+                        try {
+                            const response = await fetch(form.action, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok) {
+                                throw new Error(data.error || 'Error en el servidor');
+                            }
+
+                            if (data.success) {
+                                // Cierra el modal
+                                bootstrap.Modal.getInstance(document.getElementById('crearViajeModal')).hide();
+
+                                // Muestra mensaje de éxito
+                                showAlert('success', data.message || '¡Viaje creado correctamente!');
+
+                                // Recarga la página después de 1.5 segundos
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                // Manejo de errores de validación
+                                if (data.errors) {
+                                    // Limpia errores anteriores
+                                    document.querySelectorAll('.is-invalid').forEach(el => {
+                                        el.classList.remove('is-invalid');
+                                    });
+                                    document.querySelectorAll('.invalid-feedback').forEach(el => {
+                                        el.remove();
+                                    });
+
+                                    // Muestra nuevos errores
+                                    for (const [field, error] of Object.entries(data.errors)) {
+                                        const input = document.querySelector(`[name="${field}"]`);
+                                        const feedback = document.createElement('div');
+                                        feedback.className = 'invalid-feedback';
+                                        feedback.textContent = error;
+
+                                        if (input) {
+                                            input.classList.add('is-invalid');
+                                            input.parentNode.appendChild(feedback);
+                                        } else {
+                                            showAlert('danger', error);
+                                        }
+                                    }
+                                } else {
+                                    showAlert('danger', data.error || 'Error al crear el viaje');
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            showAlert('danger', error.message || 'Error de conexión');
+                        } finally {
+                            this.disabled = false;
+                            this.innerHTML = 'Guardar';
+                        }
+                    });
+
+                    // Limpiar errores cuando el modal se cierra
+                    document.getElementById('crearViajeModal').addEventListener('hidden.bs.modal', function () {
+                        document.querySelectorAll('.is-invalid').forEach(el => {
+                            el.classList.remove('is-invalid');
+                        });
+                        document.querySelectorAll('.invalid-feedback').forEach(el => {
+                            el.remove();
+                        });
+
+                        // Resetear el formulario
+                        document.getElementById('crearViajeForm').reset();
+                    });
+                }
+
+                document.querySelectorAll('.agregar-sugerencia').forEach(button => {
+                    button.addEventListener('click', function () {
+                        const sugerencia = this.getAttribute('data-sugerencia');
+
+                        // Limpiar el texto de formato
+                        let textoLimpio = sugerencia.replace(/<\/?[^>]+(>|$)/g, "")
+                            .replace(/\*\*/g, "")
+                            .trim();
+
+                        // Separar título y descripción si hay dos puntos
+                        let [titulo, ...descripcionParts] = textoLimpio.split(':');
+                        let descripcion = descripcionParts.join(':').trim();
+
+                        document.getElementById('id_titulo').value = titulo.trim();
+                        document.getElementById('id_descripcion').value = descripcion || titulo.trim();
+                    });
+                });
+
+                //Agregar actividad
+                const submitActBtn = document.getElementById('submitActividadForm');
+                if (submitActBtn) {
+                    const formAct = document.getElementById('form-agregar-actividad');
+                    const modalActEl = document.getElementById('agregarActividadModal');
+                    const modalAct = new bootstrap.Modal(modalActEl);
+                    const errorsAct = document.getElementById('actividad-errors');
+                    const listaAct = document.getElementById('lista-actividades');
+
+                    submitActBtn.addEventListener('click', () => formAct.requestSubmit());
+
+                    formAct.addEventListener('submit', e => {
+                        e.preventDefault();
+                        errorsAct.classList.add('d-none');
+                        errorsAct.innerHTML = '';
+
+                        const data = new FormData(formAct);
+
+                        fetch(formAct.action, {
+                            method: 'POST',
+                            headers: {'X-Requested-With': 'XMLHttpRequest'},
+                            body: data
+                        })
+                            .then(res => {
+                                if (!res.ok) throw res;
+                                return res.json();
+                            })
+                            .then(json => {
+                                // Inserta el HTML renderizado por la view
+                                if (json.html) {
+                                    listaAct.insertAdjacentHTML('afterbegin', json.html);
+                                }
+                                modalAct.hide();
+                                formAct.reset();
+
+                                // Toast de éxito
+                                const toastEl = document.createElement('div');
+                                toastEl.className = 'toast align-items-center text-white bg-success border-0 position-fixed';
+                                toastEl.style = 'top:20px;right:20px;z-index:1200';
+                                toastEl.setAttribute('role', 'alert');
+                                toastEl.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">${json.message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                  data-bs-dismiss="toast"></button>
+        </div>`;
+                                document.body.appendChild(toastEl);
+                                new bootstrap.Toast(toastEl, {delay: 2500}).show();
+                            })
+                            .catch(err => {
+                                if (err.json) {
+                                    err.json().then(j => {
+                                        let html = '<ul class="mb-0">';
+                                        for (const [f, m] of Object.entries(j.errors || {})) {
+                                            html += `<li><strong>${f}:</strong> ${m}</li>`;
+                                        }
+                                        html += '</ul>';
+                                        errorsAct.innerHTML = html;
+                                        errorsAct.classList.remove('d-none');
+                                    });
+                                } else {
+                                    console.error(err);
+                                }
+                            });
+                    });
+
+                    // Limpia errores al cerrar
+                    modalActEl.addEventListener('hidden.bs.modal', () => {
+                        errorsAct.classList.add('d-none');
+                        errorsAct.innerHTML = '';
+                    });
+                }
             });
 
             // Funciones auxiliares
@@ -1428,6 +1823,7 @@
 
                 doc.save(`Itinerario viaje {{ viaje.nombre }}.pdf`);
             });
+
         </script>
     {% endblock %}
 {% endblock %}

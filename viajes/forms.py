@@ -26,11 +26,12 @@ class CrearViajeForm(forms.ModelForm):
 
     class Meta:
         model = Viaje
-        fields = ['nombre', 'fecha_inicio', 'fecha_fin']
+        fields = ['nombre', 'fecha_inicio', 'fecha_fin', 'imagen']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'imagen': forms.FileInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -54,13 +55,15 @@ class AgregarActividadForm(forms.ModelForm):
 class EditarViajeForm(forms.ModelForm):
     class Meta:
         model = Viaje
-        fields = ['nombre', 'destino', 'fecha_inicio', 'fecha_fin', 'estado']
+        fields = ['nombre', 'destino', 'fecha_inicio', 'fecha_fin', 'estado', 'visibilidad', 'imagen']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'destino': forms.Select(attrs={'class': 'form-control'}),
             'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'},format='%Y-%m-%d'),
             'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'},format='%Y-%m-%d'),
             'estado': forms.Select(attrs={'class': 'form-control'}),
+            'visibilidad': forms.Select(attrs={'class': 'form-control'}),
+            'imagen': forms.FileInput(attrs={'class': 'form-control'}),
         }
 
 class FotoPerfilForm(forms.ModelForm):

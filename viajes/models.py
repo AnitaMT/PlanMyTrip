@@ -31,7 +31,7 @@ class Destino(models.Model):
     pais = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
     imagen = models.ImageField(upload_to="destinos/", null=True, blank=True)
-    categoria = models.CharField(max_length=20, choices=CATEGORIAS_DESTINO, default='CIUDAD')
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS_DESTINO, default='CIUDAD', blank=True, null=True)
 
     def __str__(self):
         return f"{self.nombre}, {self.pais}"
@@ -45,6 +45,11 @@ class Viaje(models.Model):
         ('FINALIZADO', 'Finalizado')
     ]
 
+    VISIBILIDAD_VIAJE = [
+        ('PRIVADO', 'Privado'),
+        ('PUBLICO', 'Público')
+    ]
+
     nombre = models.CharField(max_length=255)
     destino = models.ForeignKey(Destino, on_delete=models.CASCADE, related_name="viajes")
     fecha_inicio = models.DateField()
@@ -53,6 +58,8 @@ class Viaje(models.Model):
     colaboradores = models.ManyToManyField(UsuarioPersonalizado, related_name="viajes_colaborando", blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS_VIAJE, default='ACTIVO')
     presupuesto_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    visibilidad = models.CharField(max_length=20, choices=VISIBILIDAD_VIAJE, default='PRIVADO')
+    imagen = models.ImageField(upload_to="viaje/", null=True, blank=True)
 
     def __str__(self):
         return f"{self.nombre} - {self.destino.nombre}"
@@ -101,14 +108,30 @@ class Comentario(models.Model):
 
 
 class MeGusta(models.Model):
-    actividad = models.ForeignKey(Actividad, on_delete=models.CASCADE, related_name="me_gustas")
+    actividad = models.ForeignKey(Actividad, on_delete=models.CASCADE, related_name="me_gustas", null=True, blank=True)
     usuario = models.ForeignKey(UsuarioPersonalizado, on_delete=models.CASCADE, related_name="me_gustas_dados")
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="me_gustas_viaje", null=True, blank=True)
 
     class Meta:
-        unique_together = ('actividad', 'usuario')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['usuario', 'actividad'],
+                name='unique_like_actividad',
+                condition=models.Q(actividad__isnull=False)
+            ),
+            models.UniqueConstraint(
+                fields=['usuario', 'viaje'],
+                name='unique_like_viaje',
+                condition=models.Q(viaje__isnull=False)
+            ),
+        ]
 
     def __str__(self):
-        return f"{self.usuario.username} le dio me gusta a {self.actividad.titulo}"
+        if self.actividad:
+            return f"{self.usuario.username} le dio me gusta a la actividad: {self.actividad.titulo}"
+        if self.viaje:
+            return f"{self.usuario.username} le dio me gusta al viaje: {self.viaje.nombre}"
+        return f"{self.usuario.username} hizo un MeGusta inválido"
 
 
 
