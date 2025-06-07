@@ -310,7 +310,6 @@
                     </div>
                 </div>
 
-                <!-- Grid de viajes públicos -->
                 {% if viajes %}
                     <!-- Grid de viajes públicos -->
                     {% if viajes %}
@@ -444,12 +443,6 @@
                                                             <div class="d-flex">
                                                                 {% for participante in viaje.colaboradores.all|slice:":3" %}
                                                                     <img src="
-
-
-
-
-
-
                                                                             {% if participante.foto_perfil %}{{ participante.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                                          class="rounded-circle border-2 border-white shadow-sm"
                                                                          width="36" height="36"

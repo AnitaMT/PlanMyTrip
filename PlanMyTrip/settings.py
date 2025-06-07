@@ -95,6 +95,11 @@ DATABASES = {
     }
 }
 
+CSRF_TRUSTED_ORIGINS = {
+    'http://localhost:8000',
+    'http://planmytrip.anamtroya.tech',
+    'https://planmytrip.anamtroya.tech',
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

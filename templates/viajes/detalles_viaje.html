@@ -166,6 +166,11 @@
                         <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="
+
+
+
+
+
                                     {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                  alt="Foto de perfil" width="40" height="40" class="rounded-circle me-2 avatar-glow">
                             <div class="d-none d-md-block">
@@ -473,6 +478,7 @@
                                                                    data-bs-target="#likesModal">
                                                                     {{ actividad.me_gustas.count }}
                                                                 </a>
+                                                                {% if es_creador or es_colaborador %}
                                                                 <a href="{% url 'viajes:editar_actividad' actividad.pk %}"
                                                                    class="btn btn-sm btn-outline-primary me-2">
                                                                     <i class="fas fa-edit"></i>
@@ -482,6 +488,17 @@
                                                                    data-id="{{ actividad.pk }}" data-tipo="actividad">
                                                                     <i class="fas fa-trash-alt"></i>
                                                                 </a>
+                                                                {% else %}
+                                                                <a href="{% url 'viajes:editar_actividad' actividad.pk %}"
+                                                                   class="btn btn-sm btn-outline-primary me-2 disabled">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </a>
+                                                                <a href="#"
+                                                                   class="btn btn-sm btn-outline-danger eliminar-actividad disabled"
+                                                                   data-id="{{ actividad.pk }}" data-tipo="actividad">
+                                                                    <i class="fas fa-trash-alt"></i>
+                                                                </a>
+                                                            {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -519,7 +536,8 @@
                                         {# title="Recargar sugerencias">#}
                                         {# <i class="fas fa-rotate-right "></i>#}
                                         {# </button>#}
-                                        <a href="{% url 'viajes:detalles_viaje' viaje.pk %}" id="recargar-sugerencias" class="btn btn-sm btn-outline-light"
+                                        <a href="{% url 'viajes:detalles_viaje' viaje.pk %}" id="recargar-sugerencias"
+                                           class="btn btn-sm btn-outline-light"
                                            title="Recargar sugerencias">
                                             <i class="fas fa-rotate-right"></i>
                                         </a>
@@ -620,10 +638,6 @@
                                                             <td>
                                                                 <div class="d-flex align-items-center">
                                                                     <img src="
-
-
-
-
                                                                             {% if usuario.foto_perfil %}{{ usuario.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                                          class="rounded-circle me-2" width="30"
                                                                          height="30">
@@ -664,10 +678,20 @@
                                                 <h5 class="text-success">No hay deudas pendientes</h5>
                                                 <p class="text-muted">Todos los gastos están equilibrados entre los
                                                     participantes.</p>
-                                                <button class="btn btn-primary mt-3" data-bs-toggle="modal"
-                                                        data-bs-target="#agregarPagoModal">
-                                                    <i class="fas fa-money-bill-wave me-1"></i> Registrar nuevo gasto
-                                                </button>
+                                                {% if es_colaborador or es_creador %}
+                                                    <button class="btn btn-primary mt-3" data-bs-toggle="modal"
+                                                            data-bs-target="#agregarPagoModal">
+                                                        <i class="fas fa-money-bill-wave me-1"></i> Registrar nuevo
+                                                        gasto
+                                                    </button>
+                                                {% else %}
+                                                    <button class="btn btn-primary mt-3" data-bs-toggle="modal"
+                                                            data-bs-target="#agregarPagoModal" disabled>
+                                                        <i class="fas fa-money-bill-wave me-1"></i> Registrar
+                                                        nuevo
+                                                        gasto
+                                                    </button>
+                                                {% endif %}
                                             </div>
                                         {% endif %}
                                     </div>
@@ -983,12 +1007,22 @@
 
 
 
+
+
+
+
+
                                                                 {% if u.foto_perfil %}{{ u.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                                              class="rounded-circle me-2" width="30" height="30">
                                                     {% endif %}
                                                 {% endfor %}
                                                 {% if viaje.creador.id == deudor_id %}
                                                     <img src="
+
+
+
+
+
 
 
 
@@ -1195,6 +1229,27 @@
                 btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar');
                 modalBodyText = document.getElementById('modal-body-text');
 
+                const viajeTabs = document.getElementById('viajeTabs');
+                const tabButtons = viajeTabs.querySelectorAll('button[data-bs-toggle="tab"]');
+                const storedTab = localStorage.getItem('activeTab');
+
+                // Si hay una pestaña guardada, activarla
+                if (storedTab) {
+                    const tabToActivate = document.querySelector(`button[data-bs-target="${storedTab}"]`);
+                    if (tabToActivate) {
+                        const tabInstance = new bootstrap.Tab(tabToActivate);
+                        tabInstance.show();
+                    }
+                }
+
+                // Guardar la pestaña activa cuando se cambie
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', function () {
+                        const targetTab = this.getAttribute('data-bs-target');
+                        localStorage.setItem('activeTab', targetTab);
+                    });
+                });
+
                 // Asignar eventos de eliminación
                 asignarEventosEliminar();
 
@@ -1239,6 +1294,7 @@
 
                                 // Recarga la página para asegurar consistencia
                                 setTimeout(() => {
+                                    sessionStorage.setItem('activeTab', document.querySelector('.nav-link.active').getAttribute('data-bs-target'));
                                     window.location.reload();
                                 }, 1000);
                             } else {
@@ -1313,7 +1369,7 @@
                 });
 
 
-                // Registrar pago
+                // Registrar gasto
                 document.getElementById('agregarPagoBtn').addEventListener('click', async function () {
                     const form = document.getElementById('agregarPagoForm');
                     const formData = new FormData(form);
@@ -1351,6 +1407,7 @@
 
                             // Recarga la página
                             setTimeout(() => {
+                                sessionStorage.setItem('activeTab', document.querySelector('.nav-link.active').getAttribute('data-bs-target'));
                                 window.location.reload();
                             }, 1500);
                         } else {
@@ -1640,6 +1697,7 @@
                                 // Inserta el HTML renderizado por la view
                                 if (json.html) {
                                     listaAct.insertAdjacentHTML('afterbegin', json.html);
+                                    asignarEventosEliminar();
                                 }
                                 modalAct.hide();
                                 formAct.reset();
@@ -1657,6 +1715,11 @@
         </div>`;
                                 document.body.appendChild(toastEl);
                                 new bootstrap.Toast(toastEl, {delay: 2500}).show();
+
+                                setTimeout(() => {
+                                    sessionStorage.setItem('activeTab', document.querySelector('.nav-link.active').getAttribute('data-bs-target'));
+                                    window.location.reload();
+                                }, 1500);
                             })
                             .catch(err => {
                                 if (err.json) {

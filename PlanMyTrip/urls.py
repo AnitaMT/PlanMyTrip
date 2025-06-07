@@ -20,7 +20,7 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from PlanMyTrip import settings
-from views import GastosPorCategoriaAPI
+from viajes.views import GastosPorCategoriaAPI
 
 urlpatterns = [
     path('admin/', admin.site.urls),

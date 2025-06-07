@@ -1,8 +1,6 @@
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, \
     PasswordResetCompleteView
 from django.urls import path
-
-import views
 from viajes.views import *
 
 app_name = 'viajes'
@@ -47,5 +45,5 @@ urlpatterns = [
     path('viajes_publicos/', ViajesPublicosView.as_view(), name='viajes_publicos'),
     path('toggle-like-viaje/<int:pk>/', ToggleLikeViajeView.as_view(), name='toggle_like_viaje'),
     path('likes/viaje/<int:pk>/', ViajeLikesView.as_view(), name='likes_viaje'),
-    path('asistente/', views.asistente_ayuda, name='asistente_ayuda'),
+    path('asistente/', asistente_ayuda, name='asistente_ayuda'),
 ]
