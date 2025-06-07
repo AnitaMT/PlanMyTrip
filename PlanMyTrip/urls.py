@@ -17,12 +17,17 @@ Including another URLconf
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from PlanMyTrip import settings
+from viajes.views import GastosPorCategoriaAPI
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('viajes/', include('viajes.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('api/viajes/<int:viaje_id>/gastos-por-categoria/', GastosPorCategoriaAPI.as_view(),name='gastos-por-categoria'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -8,50 +8,63 @@
     {% csrf_token %}
     <div class="wrapper d-flex flex-column min-vh-100">
         <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" style="background-color: #f8f9fa;">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
             <div class="container-fluid">
                 <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
-                    <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
-                    <span class="brand-text">PlanMyTrip</span>
+                    <img src="{% static 'imagenes/logo.png' %}" width="45" height="45" alt="logo"
+                         class="me-2 rounded-circle">
+                    <span class="brand-text fs-4">PlanMyTrip</span>
                 </a>
 
                 <div class="d-flex align-items-center ms-auto">
-                    <!-- Notificaciones con tooltip -->
+                    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                        <ul class="navbar-nav me-4">
+                            <li class="nav-item mx-2">
+                                <a class="nav-link" href="{% url 'viajes:inicio' %}" style="color: #495057;">Página
+                                    Principal</a>
+                            </li>
+                            <li class="nav-item mx-2">
+                                <a class="nav-link" href="{% url 'viajes:viajes_publicos' %}" style="color: #495057;">Ideas
+                                    de Viajes</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Notificaciones -->
                     <div class="dropdown me-3">
-                        <a href="#" class="position-relative text-dark" data-bs-toggle="dropdown" aria-expanded="false"
-                           data-bs-toggle="tooltip" title="Notificaciones">
-                            <i class="fas fa-bell fs-5"></i>
+                        <a href="#" class="position-relative text-dark btn btn-outline-light rounded-circle p-2"
+                           data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip"
+                           title="Notificaciones">
+                            <i class="fas fa-bell"></i>
                             {% if notificaciones_sin_leer_count > 0 %}
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse">
-                                {{ notificaciones_sin_leer_count }}
-                            </span>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ notificaciones_sin_leer_count }}
+                                </span>
                             {% endif %}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
-                            <li class="dropdown-header">Notificaciones recientes</li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 12px;">
+                            <li class="dropdown-header text-primary fw-bold">Notificaciones recientes</li>
                             {% for notificacion in ultimas_notificaciones %}
                                 {% if notificacion.leido == False %}
                                     <li>
-                                        <a class="dropdown-item d-flex justify-content-between align-items-start"
+                                        <a class="dropdown-item d-flex justify-content-between align-items-start py-2"
                                            href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
                                             <div>
                                                 <div class="notification-text">{{ notificacion.mensaje }}</div>
                                                 <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
                                             </div>
-                                            <span class="badge bg-primary">nuevo</span>
+                                            <span class="badge bg-primary rounded-pill">nuevo</span>
                                         </a>
                                     </li>
                                 {% endif %}
                             {% empty %}
-                                {#<li><a class="dropdown-item text-muted">No hay notificaciones</a></li>#}
+                                <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             {% endfor %}
-                            <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
                                 <a href="{% url 'viajes:notificaciones' %}"
-                                   class="dropdown-item text-center text-primary">
+                                   class="dropdown-item text-center text-primary fw-bold">
                                     Ver todas
                                 </a>
                             </li>
@@ -60,23 +73,23 @@
 
                     <!-- Menú de usuario -->
                     <div class="dropdown">
-                        <a href="#"
-                           class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle user-dropdown"
+                        <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="avatar-container me-2">
-                                <img src="
-
-                                        {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
-                                     alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
-                            </div>
-                            <div class="user-info d-none d-md-block">
-                                <strong>{{ user.username }}</strong>
+                            <img src="
+                                    {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
+                                 alt="Foto de perfil" width="40" height="40" class="rounded-circle me-2 avatar-glow">
+                            <div class="d-none d-md-block">
+                                <strong class="text-dark">{{ user.username }}</strong>
                             </div>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{% url 'viajes:ajustes_usuario' %}"><i
-                                    class="fas fa-user-cog me-2"></i>Ajustes</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 12px;">
+                            <li><a class="dropdown-item py-2" href="{% url 'viajes:ajustes_usuario' %}">
+                                <i class="fas fa-user-cog me-2 text-primary"></i>Ajustes</a></li>
+                            <li>
+                                <a class="dropdown-item py-2" href="#" data-bs-toggle="modal"
+                                   data-bs-target="#ayudaModal">
+                                    <i class="fas fa-question-circle me-2 text-primary"></i>Ayuda
+                                </a>
                             </li>
                             <li>
                                 <hr class="dropdown-divider">
@@ -84,7 +97,7 @@
                             <li>
                                 <form action="{% url 'viajes:logout' %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="dropdown-item logout-btn">
+                                    <button type="submit" class="dropdown-item py-2 text-danger">
                                         <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
                                     </button>
                                 </form>
@@ -267,114 +280,438 @@
 
         </main>
 
-    <!-- Footer -->
-    <footer class="footer py-5" style="background-color: #f8f9fa; color: #495057; border-top: 1px solid #e1e5ee;">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4 mb-lg-0">
-                    <h5 class="mb-3" style="color: #4692ff;">
-                        <img src="{% static 'imagenes/logo.png' %}" width="40" height="40" alt="logo" class="me-2">
-                        PlanMyTrip
-                    </h5>
-                    <p>La mejor manera de planificar viajes en grupo con tus amigos.</p>
+        <!-- Footer -->
+        <footer class="footer py-5" style="background-color: #f8f9fa; color: #495057; border-top: 1px solid #e1e5ee;">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 mb-4 mb-lg-0">
+                        <h5 class="mb-3" style="color: #4692ff;">
+                            <img src="{% static 'imagenes/logo.png' %}" width="40" height="40" alt="logo" class="me-2">
+                            PlanMyTrip
+                        </h5>
+                        <p>La mejor manera de planificar viajes en grupo con tus amigos.</p>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
+                        <h5 class="mb-3" style="color: #4692ff;">Enlaces</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#funcionalidades" class="text-decoration-none"
+                                                style="color: #495057;">Funcionalidades</a></li>
+                            <li class="mb-2"><a href="#testimonios" class="text-decoration-none"
+                                                style="color: #495057;">Testimonios</a>
+                            </li>
+                            <li><a href="{% url 'viajes:login' %}" class="text-decoration-none" style="color: #495057;">Iniciar
+                                sesión</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                        <h5 class="mb-3" style="color: #4692ff;">Legal</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Términos
+                                de
+                                uso</a></li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Política
+                                de
+                                privacidad</a></li>
+                            <li><a href="#" class="text-decoration-none" style="color: #495057;">Cookies</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <h5 class="mb-3" style="color: #4692ff;">Síguenos</h5>
+                        <div class="d-flex gap-3">
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-facebook-f fa-lg"></i></a>
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-twitter fa-lg"></i></a>
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-instagram fa-lg"></i></a>
+                            <a href="#" class="text-decoration-none" style="color: #495057;"><i
+                                    class="fab fa-linkedin-in fa-lg"></i></a>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
-                    <h5 class="mb-3" style="color: #4692ff;">Enlaces</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#funcionalidades" class="text-decoration-none"
-                                            style="color: #495057;">Funcionalidades</a></li>
-                        <li class="mb-2"><a href="#testimonios" class="text-decoration-none" style="color: #495057;">Testimonios</a>
-                        </li>
-                        <li><a href="{% url 'viajes:login' %}" class="text-decoration-none" style="color: #495057;">Iniciar
-                            sesión</a></li>
-                    </ul>
+                <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
+                <div class="text-center">
+                    <p class="mb-0 small">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
                 </div>
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <h5 class="mb-3" style="color: #4692ff;">Legal</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Términos de
-                            uso</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #495057;">Política de
-                            privacidad</a></li>
-                        <li><a href="#" class="text-decoration-none" style="color: #495057;">Cookies</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="mb-3" style="color: #4692ff;">Síguenos</h5>
-                    <div class="d-flex gap-3">
-                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
-                                class="fab fa-facebook-f fa-lg"></i></a>
-                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
-                                class="fab fa-twitter fa-lg"></i></a>
-                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
-                                class="fab fa-instagram fa-lg"></i></a>
-                        <a href="#" class="text-decoration-none" style="color: #495057;"><i
-                                class="fab fa-linkedin-in fa-lg"></i></a>
+            </div>
+        </footer>
+
+        <!-- Modal chat IA -->
+        <div class="modal fade" id="ayudaModal" tabindex="-1" aria-labelledby="ayudaModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-chat-corner">
+                <div class="modal-content border-0 shadow-lg">
+                    <!-- Encabezado con gradiente -->
+                    <div class="modal-header bg-gradient-primary text-white">
+                        <div class="d-flex align-items-center">
+{#                            <i class="fas fa-robot fa-sm"></i>#}
+                           <img src="{% static 'imagenes/plane.png' %}"
+                                 alt="Foto de perfil" width="60" height="50" class="rounded-circle me-2 avatar-glow">
+                            <div>
+                                <h6 class="modal-title mb-0" id="ayudaModalLabel">TravesIA</h6>
+                                <small class="text-white-50">Te ayudo a vivir esta experiencia</small>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="Cerrar"></button>
+                    </div>
+
+                    <!-- Cuerpo del chat -->
+                    <div class="modal-body p-0">
+                        <!-- Área de mensajes -->
+                        <div id="chat-contenido" class="p-3" style="
+                    min-height: 300px;
+                    max-height: 350px;
+                    overflow-y: auto;
+                    background: rgba(248, 249, 250, 0.8);
+                    backdrop-filter: blur(5px);
+                ">
+                            <!-- Mensaje de bienvenida inicial -->
+                            <div class="chat-message bot-message mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar bg-primary text-white rounded-circle p-1">
+{#                                            <i class="fas fa-robot fa-sm"></i>#}
+                                            <img src="{% static 'imagenes/travesia.png' %}"
+                                 alt="Foto de perfil" width="60" height="60" class="rounded-circle me-2 avatar-glow">
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <div class="message-bubble bg-light p-2 rounded-3 shadow-sm">
+                                            <p class="mb-1 small">¡Hola, soy TravesIA! Soy tu asistente de viajes. ¿En
+                                                qué
+                                                puedo ayudarte hoy?</p>
+                                            <div class="text-end mt-1">
+                                                <small class="text-muted">Hoy, <span
+                                                        class="current-time"></span></small>
+                                            </div>
+                                        </div>
+                                        <div class="suggestions mt-2">
+                                            <button class="btn btn-sm btn-outline-primary suggestion-btn me-1 mb-1 small">
+                                                ¿Qué
+                                                ver en Barcelona?
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary suggestion-btn me-1 mb-1 small">
+                                                Recomienda restaurantes
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary suggestion-btn mb-1 small">
+                                                Consejos
+                                                de transporte
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formulario de chat con estilo moderno -->
+                        <div class="p-2 border-top">
+                            <form id="form-chat-ayuda" class="needs-validation" novalidate>
+                                <div class="input-group has-validation">
+                                    <input type="text" id="mensaje-ayuda" class="form-control rounded-pill me-2"
+                                           placeholder="Escribe tu pregunta aquí..." required
+                                           style="padding-left: 15px; font-size: 14px;">
+                                    <button class="btn btn-primary rounded-pill px-3" type="submit" id="send-button">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                    <div class="invalid-feedback ps-2">
+                                        Por favor escribe tu pregunta
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-            <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
-            <div class="text-center">
-                <p class="mb-0 small">&copy; 2025 PlanMyTrip. Todos los derechos reservados.</p>
-            </div>
         </div>
-    </footer>
     </div>
 
-    {% block scripts %}
-        <script>
-            let viajeIdAEliminar = null;
+        <style>
+            /* Posicionamiento en esquina inferior derecha */
+            .modal-chat-corner {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                margin: 0;
+                width: 400px;
+                max-width: calc(100vw - 40px);
+            }
 
-            document.querySelectorAll('.eliminar-viaje').forEach(function (btn) {
-                btn.addEventListener('click', function (event) {
-                    event.preventDefault();
+            .modal-chat-corner .modal-content {
+                border-radius: 15px;
+                overflow: hidden;
+                max-height: 500px;
+            }
 
-                    viajeIdAEliminar = btn.getAttribute('data-id');
-                    const nombreViaje = btn.getAttribute('data-nombre');
+            /* Ajustes para pantallas pequeñas */
+            @media (max-width: 576px) {
+                .modal-chat-corner {
+                    width: calc(100vw - 20px);
+                    right: 10px;
+                    bottom: 10px;
+                }
+            }
 
-                    document.getElementById('modal-body-text').innerHTML = `¿Estás seguro de que deseas eliminar el viaje <strong>${nombreViaje}</strong>?`;
+            /* Eliminar backdrop del modal para que no oscurezca la página */
+            #ayudaModal .modal-backdrop {
+                display: none;
+            }
 
-                    const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
-                    confirmarEliminarModal.show();
-                });
-            });
+            /* Estilos personalizados */
+            .bg-gradient-primary {
+                background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+            }
 
-            document.getElementById('btnConfirmarEliminar').addEventListener('click', function () {
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            .avatar {
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
 
-                fetch(`{% url 'viajes:eliminar_viaje' 0 %}`.replace('0', viajeIdAEliminar), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify({
-                        csrfmiddlewaretoken: csrfToken
-                    })
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la solicitud');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            const confirmarEliminarModal = bootstrap.Modal.getInstance(document.getElementById('confirmarEliminarModal'));
-                            confirmarEliminarModal.hide();
+            .message-bubble {
+                position: relative;
+                max-width: 85%;
+            }
 
-                            window.location.reload();
-                        } else {
-                            throw new Error('No se pudo eliminar el viaje');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error al eliminar el viaje:', error);
-                        alert(error.message || 'Hubo un problema al intentar eliminar el viaje. Por favor, inténtalo nuevamente.');
+            .bot-message .message-bubble {
+                border-top-left-radius: 0 !important;
+            }
+
+            .user-message {
+                justify-content: flex-end;
+            }
+
+            .user-message .message-bubble {
+                background-color: #e3f2fd !important;
+                border-top-right-radius: 0 !important;
+            }
+
+            .suggestions {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .suggestion-btn {
+                transition: all 0.2s;
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+
+            .suggestion-btn:hover {
+                transform: translateY(-1px);
+            }
+
+            /* Efecto de scroll personalizado */
+            #chat-contenido::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            #chat-contenido::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.05);
+            }
+
+            #chat-contenido::-webkit-scrollbar-thumb {
+                background: rgba(0, 0, 0, 0.1);
+                border-radius: 3px;
+            }
+
+            #chat-contenido::-webkit-scrollbar-thumb:hover {
+                background: rgba(0, 0, 0, 0.2);
+            }
+
+            /* Animación suave para aparecer */
+            .modal.fade .modal-dialog {
+                transform: translate(20px, 20px) scale(0.9);
+                transition: transform 0.3s ease-out;
+            }
+
+            .modal.show .modal-dialog {
+                transform: translate(0, 0) scale(1);
+            }
+
+            .user-message {
+                display: flex;
+                justify-content: flex-end;
+                margin-bottom: 10px;
+            }
+
+            .user-message .message-bubble {
+                background-color: #e3f2fd;
+                padding: 8px 12px;
+                border-radius: 12px;
+                max-width: 85%;
+                border-top-right-radius: 0;
+                font-size: 14px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            }
+        </style>
+
+        {% block scripts %}
+            <script>
+                let viajeIdAEliminar = null;
+
+                document.querySelectorAll('.eliminar-viaje').forEach(function (btn) {
+                    btn.addEventListener('click', function (event) {
+                        event.preventDefault();
+
+                        viajeIdAEliminar = btn.getAttribute('data-id');
+                        const nombreViaje = btn.getAttribute('data-nombre');
+
+                        document.getElementById('modal-body-text').innerHTML = `¿Estás seguro de que deseas eliminar el viaje <strong>${nombreViaje}</strong>?`;
+
+                        const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
+                        confirmarEliminarModal.show();
                     });
-            });
-        </script>
-    {% endblock %}
+                });
+
+                document.getElementById('btnConfirmarEliminar').addEventListener('click', function () {
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                    fetch(`{% url 'viajes:eliminar_viaje' 0 %}`.replace('0', viajeIdAEliminar), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({
+                            csrfmiddlewaretoken: csrfToken
+                        })
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error en la solicitud');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                const confirmarEliminarModal = bootstrap.Modal.getInstance(document.getElementById('confirmarEliminarModal'));
+                                confirmarEliminarModal.hide();
+
+                                window.location.reload();
+                            } else {
+                                throw new Error('No se pudo eliminar el viaje');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error al eliminar el viaje:', error);
+                            alert(error.message || 'Hubo un problema al intentar eliminar el viaje. Por favor, inténtalo nuevamente.');
+                        });
+                });
+
+                document.addEventListener("DOMContentLoaded", function () {
+                    const form = document.getElementById("form-chat-ayuda");
+                    const input = document.getElementById("mensaje-ayuda");
+                    const chat = document.getElementById("chat-contenido");
+
+                    function scrollToBottom() {
+                        chat.scrollTop = chat.scrollHeight;
+                    }
+
+                    function agregarMensajeUsuario(texto) {
+                        const div = document.createElement("div");
+                        div.className = "user-message";
+                        div.innerHTML = `<div class="message-bubble">${texto}</div>`;
+                        chat.appendChild(div);
+                        scrollToBottom();
+                    }
+
+                    function agregarMensajeBot(texto) {
+                        const div = document.createElement("div");
+                        div.className = "chat-message bot-message mb-3";
+                        div.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="flex-shrink-0">
+                    <div class="avatar bg-primary text-white rounded-circle p-1">
+                       {#<i class="fas fa-robot fa-sm"></i>#}
+                    <img src="{% static 'imagenes/travesia.png' %}"
+                                 alt="Foto de perfil" width="60" height="60" class="rounded-circle me-2 avatar-glow">
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-2">
+                    <div class="message-bubble bg-light p-2 rounded-3 shadow-sm">
+                        <p class="mb-1 small">${texto}</p>
+                        <div class="text-end mt-1">
+                            <small class="text-muted">Ahora</small>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+                        chat.appendChild(div);
+                        scrollToBottom();
+                    }
+
+                    function mostrarEsperando() {
+                        const div = document.createElement("div");
+                        div.id = "espera-ayuda";
+                        div.className = "text-muted ms-2 mb-2 small";
+                        div.textContent = "Escribiendo...";
+                        chat.appendChild(div);
+                        scrollToBottom();
+                    }
+
+                    function eliminarEsperando() {
+                        const espera = document.getElementById("espera-ayuda");
+                        if (espera) espera.remove();
+                    }
+
+                    form.addEventListener("submit", function (e) {
+                        e.preventDefault();
+
+                        const mensaje = input.value.trim();
+                        console.log('MENSAJE: ' + mensaje);
+                        if (!mensaje) {
+                            input.classList.add("is-invalid");
+                            return;
+                        }
+
+                        input.classList.remove("is-invalid");
+                        agregarMensajeUsuario(mensaje);
+                        mostrarEsperando();
+                        input.value = "";
+                        input.disabled = true;
+
+                        fetch("{% url 'viajes:asistente_ayuda' %}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": "{{ csrf_token }}"
+                            },
+                            body: JSON.stringify({mensaje})
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                eliminarEsperando();
+                                agregarMensajeBot(data.respuesta);
+                                input.disabled = false;
+                                input.focus();
+                            })
+                            .catch(err => {
+                                eliminarEsperando();
+                                agregarMensajeBot("Ocurrió un error al contactar con el asistente.");
+                                input.disabled = false;
+                            });
+                    });
+
+                    // Botones de sugerencia
+                    document.querySelectorAll(".suggestion-btn").forEach(btn => {
+                        btn.addEventListener("click", function () {
+                            input.value = this.textContent;
+                            form.dispatchEvent(new Event("submit"));
+                        });
+                    });
+
+                    // Hora inicial del mensaje de bienvenida
+                    const hora = new Date().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    });
+                    const timeSpan = document.querySelector(".current-time");
+                    if (timeSpan) timeSpan.textContent = hora;
+                });
+            </script>
+        {% endblock %}
 
 
 {% endblock %}

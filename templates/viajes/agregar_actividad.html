@@ -5,85 +5,101 @@
 
 {% block content %}
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" style="background-color: #f8f9fa;">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
-                <img src="{% static 'imagenes/logo.png' %}" width="50" height="50" alt="logo" class="me-2">
-                <span class="brand-text">PlanMyTrip</span>
-            </a>
+   <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'viajes:inicio' %}">
+                    <img src="{% static 'imagenes/logo.png' %}" width="45" height="45" alt="logo"
+                         class="me-2 rounded-circle">
+                    <span class="brand-text fs-4">PlanMyTrip</span>
+                </a>
 
-            <div class="d-flex align-items-center ms-auto">
-                <!-- Notificaciones -->
-                <div class="dropdown me-3">
-                    <a href="#" class="position-relative text-dark" data-bs-toggle="dropdown" aria-expanded="false"
-                       data-bs-toggle="tooltip" title="Notificaciones">
-                        <i class="fas fa-bell fs-5"></i>
-                        {% if notificaciones_sin_leer_count > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse">
-                                {{ notificaciones_sin_leer_count }}
-                            </span>
-                        {% endif %}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-notifications">
-                        <li class="dropdown-header">Notificaciones recientes</li>
-                        {% for notificacion in ultimas_notificaciones %}
-                            {% if notificacion.leido == False %}
-                                <li>
-                                    <a class="dropdown-item d-flex justify-content-between align-items-start"
-                                       href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
-                                        <div>
-                                            <div class="notification-text">{{ notificacion.mensaje }}</div>
-                                            <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
-                                        </div>
-                                        <span class="badge bg-primary">nuevo</span>
-                                    </a>
-                                </li>
+                <div class="d-flex align-items-center ms-auto">
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav me-4">
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="{% url 'viajes:inicio'%}" style="color: #495057;">Página Principal</a>
+                    </li>
+                       <li class="nav-item mx-2">
+                        <a class="nav-link" href="{% url 'viajes:viajes_publicos' %}" style="color: #495057;">Ideas de Viajes</a>
+                    </li>
+                </ul>
+            </div>
+                    <!-- Notificaciones -->
+                    <div class="dropdown me-3">
+                        <a href="#" class="position-relative text-dark btn btn-outline-light rounded-circle p-2"
+                           data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip"
+                           title="Notificaciones">
+                            <i class="fas fa-bell"></i>
+                            {% if notificaciones_sin_leer_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ notificaciones_sin_leer_count }}
+                                </span>
                             {% endif %}
-                        {% empty %}
-                        {% endfor %}
-                        <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a href="{% url 'viajes:notificaciones' %}" class="dropdown-item text-center text-primary">Ver
-                            todas</a></li>
-                    </ul>
-                </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 12px;">
+                            <li class="dropdown-header text-primary fw-bold">Notificaciones recientes</li>
+                            {% for notificacion in ultimas_notificaciones %}
+                                {% if notificacion.leido == False %}
+                                    <li>
+                                        <a class="dropdown-item d-flex justify-content-between align-items-start py-2"
+                                           href="{% url 'viajes:notificacion_redireccion' notificacion.pk %}">
+                                            <div>
+                                                <div class="notification-text">{{ notificacion.mensaje }}</div>
+                                                <small class="text-muted">{{ notificacion.fecha_creacion|timesince }}</small>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">nuevo</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% empty %}
+                                <li><a class="dropdown-item text-muted">No hay nuevas notificaciones</a></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'viajes:notificaciones' %}"
+                                   class="dropdown-item text-center text-primary fw-bold">
+                                    Ver todas
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                <!-- Usuario -->
-                <div class="dropdown">
-                    <a href="#"
-                       class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle user-dropdown"
-                       id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="avatar-container me-2">
+                    <!-- Menú de usuario -->
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
+                           id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="
+
                                     {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
-                                 alt="Foto de perfil" width="50" height="50" class="rounded-circle avatar-img">
-                        </div>
-                        <div class="user-info d-none d-md-block">
-                            <strong>{{ user.username }}</strong>
-                        </div>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="{% url 'viajes:ajustes_usuario' %}"><i
-                                class="fas fa-user-cog me-2"></i>Ajustes</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <form action="{% url 'viajes:logout' %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="dropdown-item logout-btn">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
+                                 alt="Foto de perfil" width="40" height="40" class="rounded-circle me-2 avatar-glow">
+                            <div class="d-none d-md-block">
+                                <strong class="text-dark">{{ user.username }}</strong>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 12px;">
+                            <li><a class="dropdown-item py-2" href="{% url 'viajes:ajustes_usuario' %}">
+                                <i class="fas fa-user-cog me-2 text-primary"></i>Ajustes</a></li>
+                            <li><a class="dropdown-item py-2" href="#">
+                                <i class="fas fa-question-circle me-2 text-primary"></i>Ayuda</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form action="{% url 'viajes:logout' %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item py-2 text-danger">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="bg-light py-2 border-bottom">

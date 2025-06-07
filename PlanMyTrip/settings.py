@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'viajes.apps.ViajesConfig'
+    'rest_framework',
+    'drf_spectacular',
+    'viajes.apps.ViajesConfig',
 ]
 
 MIDDLEWARE = [
@@ -79,10 +81,10 @@ WSGI_APPLICATION = 'PlanMyTrip.wsgi.application'
 load_dotenv()
 
 DATABASES = {
-    #'default': {
+    # 'default': {
     #    'ENGINE': 'django.db.backends.sqlite3',
     #    'NAME': BASE_DIR / 'db.sqlite3',
-    #}
+    # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB'),
@@ -93,6 +95,11 @@ DATABASES = {
     }
 }
 
+CSRF_TRUSTED_ORIGINS = {
+    'http://localhost:8000',
+    'http://planmytrip.anamtroya.tech',
+    'https://planmytrip.anamtroya.tech',
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -154,4 +161,17 @@ EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = 'noreply@planmytrip.com'
 
 
-MAPBOX_TOKEN = 'pk.eyJ1IjoiYW5pdGFtdCIsImEiOiJjbTlpc29pb3EwNWxwMmtzYzQ0NmY1ZjFiIn0.4iAF_BAMHBlqMe7CDHWjyg'
+MAPBOX_TOKEN = os.getenv("MAPBOX_TOKEN", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'PlanMyTrip',
+    'DESCRIPTION': 'Viaja viajando',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+REST_FRAMEWORK = {
+    # YOUR SETTINGS
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}

@@ -1,17 +1,63 @@
 services:
-  web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/app
-      - media_volume:/app/media  # Para guardar imágenes subidas
+  traefik:
+    image: "traefik:v3.2"
+    container_name: "traefik"
+    # restart: always # add
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
+      - "--entryPoints.websecure.address=:443"
+
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=amortro399@fp.iesromerovargas.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+
     ports:
-      - "8000:8000"
+      - "443:443"
+#      - "8000:8000"
+      - "8080:8080"
+      - "80:80"
+#      - "1025:1025"
+#      - "8025:8025"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  whoami:
+    image: "traefik/whoami"
+    container_name: "whoami"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.anamtroya.tech`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
+  web:
+    #build: .
+    image: anitamt/planmytrip
+    volumes:
+      - media_volume:/app/media
+#    ports:
+#      - "8000:8000"
     env_file:
       - .env
     depends_on:
       - db
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.planmytrip.rule=Host(`planmytrip.anamtroya.tech`)"
+      - "traefik.http.routers.planmytrip.entrypoints=websecure"
+      - "traefik.http.routers.planmytrip.tls.certresolver=myresolver"
+      - "traefik.http.services.planmytrip.loadbalancer.server.port=8000"
+    command: python manage.py runserver 0.0.0.0:8000
 
   db:
     image: postgres:15-alpine

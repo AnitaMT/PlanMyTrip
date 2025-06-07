@@ -1,13 +1,7 @@
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, \
     PasswordResetCompleteView
 from django.urls import path
-from viajes.views import IndexView, RegistroUsuarioView, UsuarioLoginView, UsuarioLogoutView, PaginaInicioUsuarioView, \
-    CrearViajeView, DetallesViajeView, AgregarColaboradorView, EditarActividadView, EliminarActividadView, \
-    AgregarActividadView, ListaGastosView, AgregarGastoView, calcular_deudas, LikeToggleView, ActividadLikesView, \
-    EditarViajeView, EliminarViajeView, NotificacionRedirectView, NotificacionListView, MarcarTodasLeidasView, \
-    ListaAmigosView, ResponderSolicitudView, EnviarSolicitudView, ListaSolicitudesView, UsuariosDisponiblesView, \
-    EliminarAmigoView, EliminarGastoView
-from views import EliminarColaboradorView, DetallesActividadView, AjustesUsuarioView, EliminarNotificacionView
+from viajes.views import *
 
 app_name = 'viajes'
 
@@ -48,4 +42,8 @@ urlpatterns = [
     path('notificaciones/', NotificacionListView.as_view(), name='notificaciones'),
     path('notificaciones/marcar-todas/', MarcarTodasLeidasView.as_view(), name='notificaciones_marcar_todas'),
     path('notificaciones/<int:pk>/eliminar-notificacion/', EliminarNotificacionView.as_view(), name='eliminar_notificacion'),
+    path('viajes_publicos/', ViajesPublicosView.as_view(), name='viajes_publicos'),
+    path('toggle-like-viaje/<int:pk>/', ToggleLikeViajeView.as_view(), name='toggle_like_viaje'),
+    path('likes/viaje/<int:pk>/', ViajeLikesView.as_view(), name='likes_viaje'),
+    path('asistente/', asistente_ayuda, name='asistente_ayuda'),
 ]
