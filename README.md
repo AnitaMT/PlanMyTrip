@@ -203,10 +203,10 @@ PlanMyTrip/                # Raíz del repositorio
    docker-compose exec web python manage.py createsuperuser
    ```
 
-5. Acceder a la app en `http://localhost:8000/viajes/`.
+5. Acceder a la app en `http://localhost:8000/viajes/` o en el caso de tener dominio, en el dominio.
 
 
-## API Documentation
+## Documentación API
 
 Después de arrancar el servidor, la documentación interactiva está disponible en:
 
@@ -248,12 +248,13 @@ Authorization: Token <your_token>
    * Visibilidad: Público
 3. **Invitar amigos**:
 
-   * Buscas usuarios por nombre.
+   * Eliges a un usuario de la lista de usuarios.
    * Envías solicitudes de amistad; ellos aceptan.
+   * Una vez han aceptado, puedes añadirlos como colaboradores en tus próximos viajes.
 4. **Planificar actividades**:
 
    * Añades actividad: "Visita al Prado", 2025-07-11 10:00, Categoría: CULTURAL.
-   * Tus amigos dan like y comentan.
+   * Tus amigos dan like.
 5. **Gestionar gastos**:
 
    * Registras gasto: 100€ en "Cena".
@@ -262,10 +263,10 @@ Authorization: Token <your_token>
 6. **Chat de asistencia**:
 
    * Preguntas: "¿Dónde comer barato en Madrid?".
-   * TravesIA responde con 3 recomendaciones y emojis.
+   * TravesIA responde con recomendaciones.
 7. **Explorar viajes públicos**:
 
-   * Filtras por "Europa" o "grupos reducidos".
+   * Filtras por "Europa" o "grupos reducidos" entre otros filtros.
    * Te inspiras con itinerarios de otros.
 
 ---
