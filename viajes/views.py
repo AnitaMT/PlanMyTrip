@@ -1070,10 +1070,16 @@ def obtener_respuesta_gemini(historial):
 
 
 PAISES_EUROPEOS = [
-    'España', 'Francia', 'Alemania', 'Italia', 'Portugal',
-    'Reino Unido', 'Países Bajos', 'Bélgica', 'Grecia',
-    'Suecia', 'Noruega', 'Dinamarca', 'Polonia', 'Austria',
-    'Suiza', 'Irlanda', 'Finlandia', 'Hungría', 'República Checa',
+    'Albania', 'Alemania', 'Andorra', 'Armenia', 'Austria', 'Azerbaiyán',
+    'Bélgica', 'Bielorrusia', 'Bosnia y Herzegovina', 'Bulgaria', 'Chipre',
+    'Ciudad del Vaticano', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia',
+    'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia',
+    'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Kazajistán',
+    'Kosovo', 'Letonia', 'Liechtenstein', 'Lituania', 'Luxemburgo', 'Malta',
+    'Moldavia', 'Mónaco', 'Montenegro', 'Noruega', 'Países Bajos', 'Polonia',
+    'Portugal', 'Reino Unido', 'República Checa', 'Rumanía', 'Rusia',
+    'San Marino', 'Serbia', 'Suecia', 'Suiza', 'Turquía',
+    'Ucrania', 'Escocia'
 ]
 
 class ViajesPublicosView(LoginRequiredMixin, ListView):

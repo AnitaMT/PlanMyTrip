@@ -76,6 +76,7 @@
                         <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="
+
                                     {% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'imagenes/default-pic.png' %}{% endif %}"
                                  alt="Foto de perfil" width="40" height="40" class="rounded-circle me-2 avatar-glow">
                             <div class="d-none d-md-block">
@@ -342,15 +343,17 @@
                 <div class="modal-content border-0 shadow-lg">
                     <!-- Encabezado con gradiente -->
                     <div class="modal-header bg-gradient-primary text-white">
-                        <div class="d-flex align-items-center">
-{#                            <i class="fas fa-robot fa-sm"></i>#}
-                           <img src="{% static 'imagenes/plane.png' %}"
-                                 alt="Foto de perfil" width="60" height="50" class="rounded-circle me-2 avatar-glow">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 45px; height: 45px;">
+                                <i class="far fa-comments fa-lg"></i>
+                            </div>
                             <div>
                                 <h6 class="modal-title mb-0" id="ayudaModalLabel">TravesIA</h6>
                                 <small class="text-white-50">Te ayudo a vivir esta experiencia</small>
                             </div>
                         </div>
+                        <!-- Botón de cerrar -->
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                 aria-label="Cerrar"></button>
                     </div>
@@ -370,9 +373,9 @@
                                 <div class="d-flex align-items-start">
                                     <div class="flex-shrink-0">
                                         <div class="avatar bg-primary text-white rounded-circle p-1">
-{#                                            <i class="fas fa-robot fa-sm"></i>#}
                                             <img src="{% static 'imagenes/travesia.png' %}"
-                                 alt="Foto de perfil" width="60" height="60" class="rounded-circle me-2 avatar-glow">
+                                                 alt="Foto de perfil" width="60" height="60"
+                                                 class="rounded-circle me-2 avatar-glow">
                                         </div>
                                     </div>
                                     <div class="flex-grow-1 ms-2">
@@ -403,7 +406,7 @@
                             </div>
                         </div>
 
-                        <!-- Formulario de chat con estilo moderno -->
+                        <!-- Formulario de chat -->
                         <div class="p-2 border-top">
                             <form id="form-chat-ayuda" class="needs-validation" novalidate>
                                 <div class="input-group has-validation">
@@ -425,202 +428,202 @@
         </div>
     </div>
 
-        <style>
-            /* Posicionamiento en esquina inferior derecha */
+    <style>
+        /* Posicionamiento en esquina inferior derecha */
+        .modal-chat-corner {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            margin: 0;
+            width: 400px;
+            max-width: calc(100vw - 40px);
+        }
+
+        .modal-chat-corner .modal-content {
+            border-radius: 15px;
+            overflow: hidden;
+            max-height: 500px;
+        }
+
+        /* Ajustes para pantallas pequeñas */
+        @media (max-width: 576px) {
             .modal-chat-corner {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                margin: 0;
-                width: 400px;
-                max-width: calc(100vw - 40px);
+                width: calc(100vw - 20px);
+                right: 10px;
+                bottom: 10px;
             }
+        }
 
-            .modal-chat-corner .modal-content {
-                border-radius: 15px;
-                overflow: hidden;
-                max-height: 500px;
-            }
+        /* Eliminar backdrop del modal para que no oscurezca la página */
+        #ayudaModal .modal-backdrop {
+            display: none;
+        }
 
-            /* Ajustes para pantallas pequeñas */
-            @media (max-width: 576px) {
-                .modal-chat-corner {
-                    width: calc(100vw - 20px);
-                    right: 10px;
-                    bottom: 10px;
-                }
-            }
+        /* Estilos personalizados */
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+        }
 
-            /* Eliminar backdrop del modal para que no oscurezca la página */
-            #ayudaModal .modal-backdrop {
-                display: none;
-            }
+        .avatar {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-            /* Estilos personalizados */
-            .bg-gradient-primary {
-                background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
-            }
+        .message-bubble {
+            position: relative;
+            max-width: 85%;
+        }
 
-            .avatar {
-                width: 28px;
-                height: 28px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
+        .bot-message .message-bubble {
+            border-top-left-radius: 0 !important;
+        }
 
-            .message-bubble {
-                position: relative;
-                max-width: 85%;
-            }
+        .user-message {
+            justify-content: flex-end;
+        }
 
-            .bot-message .message-bubble {
-                border-top-left-radius: 0 !important;
-            }
+        .user-message .message-bubble {
+            background-color: #e3f2fd !important;
+            border-top-right-radius: 0 !important;
+        }
 
-            .user-message {
-                justify-content: flex-end;
-            }
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+        }
 
-            .user-message .message-bubble {
-                background-color: #e3f2fd !important;
-                border-top-right-radius: 0 !important;
-            }
+        .suggestion-btn {
+            transition: all 0.2s;
+            font-size: 12px;
+            padding: 4px 8px;
+        }
 
-            .suggestions {
-                display: flex;
-                flex-wrap: wrap;
-            }
+        .suggestion-btn:hover {
+            transform: translateY(-1px);
+        }
 
-            .suggestion-btn {
-                transition: all 0.2s;
-                font-size: 12px;
-                padding: 4px 8px;
-            }
+        /* Efecto de scroll personalizado */
+        #chat-contenido::-webkit-scrollbar {
+            width: 6px;
+        }
 
-            .suggestion-btn:hover {
-                transform: translateY(-1px);
-            }
+        #chat-contenido::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
 
-            /* Efecto de scroll personalizado */
-            #chat-contenido::-webkit-scrollbar {
-                width: 6px;
-            }
+        #chat-contenido::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
 
-            #chat-contenido::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.05);
-            }
+        #chat-contenido::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
 
-            #chat-contenido::-webkit-scrollbar-thumb {
-                background: rgba(0, 0, 0, 0.1);
-                border-radius: 3px;
-            }
+        /* Animación suave para aparecer */
+        .modal.fade .modal-dialog {
+            transform: translate(20px, 20px) scale(0.9);
+            transition: transform 0.3s ease-out;
+        }
 
-            #chat-contenido::-webkit-scrollbar-thumb:hover {
-                background: rgba(0, 0, 0, 0.2);
-            }
+        .modal.show .modal-dialog {
+            transform: translate(0, 0) scale(1);
+        }
 
-            /* Animación suave para aparecer */
-            .modal.fade .modal-dialog {
-                transform: translate(20px, 20px) scale(0.9);
-                transition: transform 0.3s ease-out;
-            }
+        .user-message {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
 
-            .modal.show .modal-dialog {
-                transform: translate(0, 0) scale(1);
-            }
+        .user-message .message-bubble {
+            background-color: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 85%;
+            border-top-right-radius: 0;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+    </style>
 
-            .user-message {
-                display: flex;
-                justify-content: flex-end;
-                margin-bottom: 10px;
-            }
+    {% block scripts %}
+        <script>
+            let viajeIdAEliminar = null;
 
-            .user-message .message-bubble {
-                background-color: #e3f2fd;
-                padding: 8px 12px;
-                border-radius: 12px;
-                max-width: 85%;
-                border-top-right-radius: 0;
-                font-size: 14px;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            }
-        </style>
+            document.querySelectorAll('.eliminar-viaje').forEach(function (btn) {
+                btn.addEventListener('click', function (event) {
+                    event.preventDefault();
 
-        {% block scripts %}
-            <script>
-                let viajeIdAEliminar = null;
+                    viajeIdAEliminar = btn.getAttribute('data-id');
+                    const nombreViaje = btn.getAttribute('data-nombre');
 
-                document.querySelectorAll('.eliminar-viaje').forEach(function (btn) {
-                    btn.addEventListener('click', function (event) {
-                        event.preventDefault();
+                    document.getElementById('modal-body-text').innerHTML = `¿Estás seguro de que deseas eliminar el viaje <strong>${nombreViaje}</strong>?`;
 
-                        viajeIdAEliminar = btn.getAttribute('data-id');
-                        const nombreViaje = btn.getAttribute('data-nombre');
-
-                        document.getElementById('modal-body-text').innerHTML = `¿Estás seguro de que deseas eliminar el viaje <strong>${nombreViaje}</strong>?`;
-
-                        const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
-                        confirmarEliminarModal.show();
-                    });
+                    const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
+                    confirmarEliminarModal.show();
                 });
+            });
 
-                document.getElementById('btnConfirmarEliminar').addEventListener('click', function () {
-                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            document.getElementById('btnConfirmarEliminar').addEventListener('click', function () {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-                    fetch(`{% url 'viajes:eliminar_viaje' 0 %}`.replace('0', viajeIdAEliminar), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken
-                        },
-                        body: JSON.stringify({
-                            csrfmiddlewaretoken: csrfToken
-                        })
+                fetch(`{% url 'viajes:eliminar_viaje' 0 %}`.replace('0', viajeIdAEliminar), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        csrfmiddlewaretoken: csrfToken
                     })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Error en la solicitud');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.success) {
-                                const confirmarEliminarModal = bootstrap.Modal.getInstance(document.getElementById('confirmarEliminarModal'));
-                                confirmarEliminarModal.hide();
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la solicitud');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const confirmarEliminarModal = bootstrap.Modal.getInstance(document.getElementById('confirmarEliminarModal'));
+                            confirmarEliminarModal.hide();
 
-                                window.location.reload();
-                            } else {
-                                throw new Error('No se pudo eliminar el viaje');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error al eliminar el viaje:', error);
-                            alert(error.message || 'Hubo un problema al intentar eliminar el viaje. Por favor, inténtalo nuevamente.');
-                        });
-                });
+                            window.location.reload();
+                        } else {
+                            throw new Error('No se pudo eliminar el viaje');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al eliminar el viaje:', error);
+                        alert(error.message || 'Hubo un problema al intentar eliminar el viaje. Por favor, inténtalo nuevamente.');
+                    });
+            });
 
-                document.addEventListener("DOMContentLoaded", function () {
-                    const form = document.getElementById("form-chat-ayuda");
-                    const input = document.getElementById("mensaje-ayuda");
-                    const chat = document.getElementById("chat-contenido");
+            document.addEventListener("DOMContentLoaded", function () {
+                const form = document.getElementById("form-chat-ayuda");
+                const input = document.getElementById("mensaje-ayuda");
+                const chat = document.getElementById("chat-contenido");
 
-                    function scrollToBottom() {
-                        chat.scrollTop = chat.scrollHeight;
-                    }
+                function scrollToBottom() {
+                    chat.scrollTop = chat.scrollHeight;
+                }
 
-                    function agregarMensajeUsuario(texto) {
-                        const div = document.createElement("div");
-                        div.className = "user-message";
-                        div.innerHTML = `<div class="message-bubble">${texto}</div>`;
-                        chat.appendChild(div);
-                        scrollToBottom();
-                    }
+                function agregarMensajeUsuario(texto) {
+                    const div = document.createElement("div");
+                    div.className = "user-message";
+                    div.innerHTML = `<div class="message-bubble">${texto}</div>`;
+                    chat.appendChild(div);
+                    scrollToBottom();
+                }
 
-                    function agregarMensajeBot(texto) {
-                        const div = document.createElement("div");
-                        div.className = "chat-message bot-message mb-3";
-                        div.innerHTML = `
+                function agregarMensajeBot(texto) {
+                    const div = document.createElement("div");
+                    div.className = "chat-message bot-message mb-3";
+                    div.innerHTML = `
             <div class="d-flex align-items-start">
                 <div class="flex-shrink-0">
                     <div class="avatar bg-primary text-white rounded-circle p-1">
@@ -638,80 +641,80 @@
                     </div>
                 </div>
             </div>`;
-                        chat.appendChild(div);
-                        scrollToBottom();
+                    chat.appendChild(div);
+                    scrollToBottom();
+                }
+
+                function mostrarEsperando() {
+                    const div = document.createElement("div");
+                    div.id = "espera-ayuda";
+                    div.className = "text-muted ms-2 mb-2 small";
+                    div.textContent = "Escribiendo...";
+                    chat.appendChild(div);
+                    scrollToBottom();
+                }
+
+                function eliminarEsperando() {
+                    const espera = document.getElementById("espera-ayuda");
+                    if (espera) espera.remove();
+                }
+
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault();
+
+                    const mensaje = input.value.trim();
+                    console.log('MENSAJE: ' + mensaje);
+                    if (!mensaje) {
+                        input.classList.add("is-invalid");
+                        return;
                     }
 
-                    function mostrarEsperando() {
-                        const div = document.createElement("div");
-                        div.id = "espera-ayuda";
-                        div.className = "text-muted ms-2 mb-2 small";
-                        div.textContent = "Escribiendo...";
-                        chat.appendChild(div);
-                        scrollToBottom();
-                    }
+                    input.classList.remove("is-invalid");
+                    agregarMensajeUsuario(mensaje);
+                    mostrarEsperando();
+                    input.value = "";
+                    input.disabled = true;
 
-                    function eliminarEsperando() {
-                        const espera = document.getElementById("espera-ayuda");
-                        if (espera) espera.remove();
-                    }
-
-                    form.addEventListener("submit", function (e) {
-                        e.preventDefault();
-
-                        const mensaje = input.value.trim();
-                        console.log('MENSAJE: ' + mensaje);
-                        if (!mensaje) {
-                            input.classList.add("is-invalid");
-                            return;
-                        }
-
-                        input.classList.remove("is-invalid");
-                        agregarMensajeUsuario(mensaje);
-                        mostrarEsperando();
-                        input.value = "";
-                        input.disabled = true;
-
-                        fetch("{% url 'viajes:asistente_ayuda' %}", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRFToken": "{{ csrf_token }}"
-                            },
-                            body: JSON.stringify({mensaje})
+                    fetch("{% url 'viajes:asistente_ayuda' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({mensaje})
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            eliminarEsperando();
+                            agregarMensajeBot(data.respuesta);
+                            input.disabled = false;
+                            input.focus();
                         })
-                            .then(res => res.json())
-                            .then(data => {
-                                eliminarEsperando();
-                                agregarMensajeBot(data.respuesta);
-                                input.disabled = false;
-                                input.focus();
-                            })
-                            .catch(err => {
-                                eliminarEsperando();
-                                agregarMensajeBot("Ocurrió un error al contactar con el asistente.");
-                                input.disabled = false;
-                            });
-                    });
-
-                    // Botones de sugerencia
-                    document.querySelectorAll(".suggestion-btn").forEach(btn => {
-                        btn.addEventListener("click", function () {
-                            input.value = this.textContent;
-                            form.dispatchEvent(new Event("submit"));
+                        .catch(err => {
+                            eliminarEsperando();
+                            agregarMensajeBot("Ocurrió un error al contactar con el asistente.");
+                            input.disabled = false;
                         });
-                    });
-
-                    // Hora inicial del mensaje de bienvenida
-                    const hora = new Date().toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                    });
-                    const timeSpan = document.querySelector(".current-time");
-                    if (timeSpan) timeSpan.textContent = hora;
                 });
-            </script>
-        {% endblock %}
+
+                // Botones de sugerencia
+                document.querySelectorAll(".suggestion-btn").forEach(btn => {
+                    btn.addEventListener("click", function () {
+                        input.value = this.textContent;
+                        form.dispatchEvent(new Event("submit"));
+                    });
+                });
+
+                // Hora inicial del mensaje de bienvenida
+                const hora = new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+                const timeSpan = document.querySelector(".current-time");
+                if (timeSpan) timeSpan.textContent = hora;
+            });
+        </script>
+    {% endblock %}
 
 
 {% endblock %}
